@@ -1,0 +1,18 @@
+{
+  "name": "محاكي إدارة البنك 3D | Bank Simulator",
+  "short_name": "Bank Tycoon 3D",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0f1d",
+  "theme_color": "#0a0f1d",
+  "description": "لعبة محاكاة مصرفية وقصصية ثلاثية الأبعاد تفاعلية",
+  "icons": [
+    {
+      "src": "./assets/bank_entrance_cover.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
