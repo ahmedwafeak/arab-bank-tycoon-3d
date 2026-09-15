@@ -14,6 +14,21 @@ export class AudioFX {
     this.masterVolume = savedMaster !== null ? parseFloat(savedMaster) : 0.88;
     this.sfxVolume = savedSfx !== null ? parseFloat(savedSfx) : 0.90;
     this.enabled = savedMuted !== null ? (savedMuted !== 'true') : true;
+
+    return new Proxy(this, {
+      get(target, prop, receiver) {
+        if (prop in target) {
+          const val = Reflect.get(target, prop, receiver);
+          return typeof val === 'function' ? val.bind(target) : val;
+        }
+        if (typeof prop === 'string' && prop.startsWith('play')) {
+          return () => {
+            if (typeof target.playClick === 'function') target.playClick();
+          };
+        }
+        return Reflect.get(target, prop, receiver);
+      }
+    });
   }
 
   init() {
@@ -380,4 +395,196 @@ export class AudioFX {
     thump.start(now);
     thump.stop(now + 0.18);
   }
+
+  /**
+   * Error / Decline / Rage-quit buzzer sound (نغمة خطأ أو رفض أو نفاد صبر)
+   */
+  playError() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    // Two low descending buzzer pulses
+    [0, 0.11].forEach((delay) => {
+      const t = now + delay;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(160, t);
+      osc.frequency.exponentialRampToValueAtTime(90, t + 0.09);
+
+      gain.gain.setValueAtTime(0.22, t);
+      gain.gain.exponentialRampToValueAtTime(0.005, t + 0.09);
+
+      osc.connect(gain);
+      gain.connect(this.getOutputNode());
+
+      osc.start(t);
+      osc.stop(t + 0.09);
+    });
+  }
+
+  /**
+   * Paper / Cheque / Passbook rustle effect (صوت تقليب أوراق الشيكات والمستندات)
+   */
+  playPaper() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(2200, now);
+    osc.frequency.exponentialRampToValueAtTime(450, now + 0.08);
+
+    gain.gain.setValueAtTime(0.14, now);
+    gain.gain.exponentialRampToValueAtTime(0.002, now + 0.08);
+
+    osc.connect(gain);
+    gain.connect(this.getOutputNode());
+
+    osc.start(now);
+    osc.stop(now + 0.08);
+  }
+
+  /**
+   * Service Counter Brass Desk Bell (رنين جرس شباك الصراف والخدمة)
+   */
+  playBell() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const freqs = [2093.0, 4186.0]; // High C7 ping + overtone
+    freqs.forEach((f, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f, now);
+
+      const amp = i === 0 ? 0.28 : 0.12;
+      gain.gain.setValueAtTime(amp, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + (i === 0 ? 0.65 : 0.35));
+
+      osc.connect(gain);
+      gain.connect(this.getOutputNode());
+
+      osc.start(now);
+      osc.stop(now + 0.65);
+    });
+  }
+
+  /**
+   * Metallic Egyptian Gold / Coin Ping (صوت رنين العملات الذهبية والمعدنية)
+   */
+  playCoin() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(2637, now);
+    osc.frequency.exponentialRampToValueAtTime(3136, now + 0.04);
+
+    gain.gain.setValueAtTime(0.24, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+    osc.connect(gain);
+    gain.connect(this.getOutputNode());
+
+    osc.start(now);
+    osc.stop(now + 0.25);
+  }
+
+  /**
+   * Security Alarm / Warning Siren (جرس الإنذار المصرفي)
+   */
+  playAlarm() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    [0, 0.14, 0.28].forEach((offset, idx) => {
+      const t = now + offset;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(idx % 2 === 0 ? 880 : 660, t);
+
+      gain.gain.setValueAtTime(0.15, t);
+      gain.gain.exponentialRampToValueAtTime(0.005, t + 0.12);
+
+      osc.connect(gain);
+      gain.connect(this.getOutputNode());
+
+      osc.start(t);
+      osc.stop(t + 0.12);
+    });
+  }
+
+  /**
+   * Subtle Floor Footstep (صوت خطوة حذاء الموظف)
+   */
+  playFootstep() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(110, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + 0.05);
+
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+    osc.connect(gain);
+    gain.connect(this.getOutputNode());
+
+    osc.start(now);
+    osc.stop(now + 0.05);
+  }
+
+  /**
+   * Swivel Chair Sitting Movement (صوت الجلوس على كرسي المكتب الفاخر)
+   */
+  playChairSit() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(85, now + 0.15);
+
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.002, now + 0.15);
+
+    osc.connect(gain);
+    gain.connect(this.getOutputNode());
+
+    osc.start(now);
+    osc.stop(now + 0.15);
+  }
 }
+

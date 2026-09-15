@@ -1585,7 +1585,7 @@ export class BankFloorScene {
         defaultAnimation: 'idle'
       });
 
-      faroukChar.model.userData = {
+      const faroukData = {
         isInteractable: true,
         type: 'npc_dialogue',
         interactLabel: 'تحدث مع المدير فاروق [E]',
@@ -1601,9 +1601,10 @@ export class BankFloorScene {
         }
       };
 
+      Object.assign(faroukChar.model.userData, faroukData);
       faroukChar.model.traverse((child) => {
         if (child.isMesh) {
-          child.userData = faroukChar.model.userData;
+          Object.assign(child.userData, faroukData);
         }
       });
 
@@ -1613,7 +1614,7 @@ export class BankFloorScene {
     // 2. Sara (Rival Colleague) at Teller Station #2 (index 1)
     if (!this.storyNPCs.sara && this.tellers[1] && this.tellers[1].clerkChar) {
       const saraChar = this.tellers[1].clerkChar;
-      saraChar.model.userData = {
+      const saraData = {
         isInteractable: true,
         type: 'npc_dialogue',
         interactLabel: 'تحدث مع الزميلة سارة [E]',
@@ -1629,9 +1630,10 @@ export class BankFloorScene {
         }
       };
 
+      Object.assign(saraChar.model.userData, saraData);
       saraChar.model.traverse((child) => {
         if (child.isMesh) {
-          child.userData = saraChar.model.userData;
+          Object.assign(child.userData, saraData);
         }
       });
 
@@ -1655,7 +1657,7 @@ export class BankFloorScene {
       cup.position.set(0.24, 0.85, 0.18);
       mahmoudChar.model.add(cup);
 
-      mahmoudChar.model.userData = {
+      const mahmoudData = {
         isInteractable: true,
         type: 'npc_dialogue',
         interactLabel: 'تحدث مع محمود (مبرد المياه) [E]',
@@ -1671,9 +1673,10 @@ export class BankFloorScene {
         }
       };
 
+      Object.assign(mahmoudChar.model.userData, mahmoudData);
       mahmoudChar.model.traverse((child) => {
         if (child.isMesh) {
-          child.userData = mahmoudChar.model.userData;
+          Object.assign(child.userData, mahmoudData);
         }
       });
 
@@ -1810,10 +1813,10 @@ export class BankFloorScene {
       walkAnimTime: Math.random() * 10
     };
 
-    mesh.userData = {
+    Object.assign(mesh.userData, {
       interactiveType: 'customer',
       customerRef: customer
-    };
+    });
 
     this.customers.push(customer);
   }
@@ -2170,8 +2173,11 @@ export class BankFloorScene {
   setupInteractions() {
     let lastMoveCheck = 0;
     this.onPointerMove = (e) => {
+      // Only active in isometric mode; third_person and first_person use dedicated controllers
+      if (this.currentPerspective !== 'isometric') return;
+
       const now = performance.now();
-      if (now - lastMoveCheck < 35) return; // 30 FPS throttle
+      if (now - lastMoveCheck < 50) return; // 20 FPS throttle
       lastMoveCheck = now;
 
       const rect = this.canvas.getBoundingClientRect();
@@ -2205,7 +2211,7 @@ export class BankFloorScene {
     };
 
     this.onPointerDown = (e) => {
-      if (this.currentPerspective === 'first_person') return; // Handled by PlayerController
+      if (this.currentPerspective !== 'isometric') return; // Handled by TP/FP PlayerController
       if (e.button !== 0) return; // Left click only
       if (!this.hoveredObject) return;
 
@@ -2235,17 +2241,22 @@ export class BankFloorScene {
     const animate = () => {
       if (!this.isRunning) return;
       this.animationFrameId = requestAnimationFrame(animate);
-      const delta = Math.min(0.1, this.clock.getDelta());
-      this.updateNPCs(delta);
 
-      if (this.currentPerspective === 'third_person' && this.tpController) {
-        this.tpController.update(delta);
-        this.renderer.render(this.scene, this.fpCamera);
-      } else if (this.currentPerspective === 'first_person' && this.playerController) {
-        this.playerController.update(delta);
-        this.renderer.render(this.scene, this.fpCamera);
-      } else {
-        this.renderer.render(this.scene, this.camera);
+      try {
+        const delta = Math.min(0.08, this.clock.getDelta());
+        this.updateNPCs(delta);
+
+        if (this.currentPerspective === 'third_person' && this.tpController) {
+          this.tpController.update(delta);
+          this.renderer.render(this.scene, this.fpCamera);
+        } else if (this.currentPerspective === 'first_person' && this.playerController) {
+          this.playerController.update(delta);
+          this.renderer.render(this.scene, this.fpCamera);
+        } else {
+          this.renderer.render(this.scene, this.camera);
+        }
+      } catch (err) {
+        console.warn('[BankFloorScene] Frame loop handled non-fatal error:', err);
       }
     };
 

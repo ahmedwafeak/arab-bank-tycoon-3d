@@ -376,50 +376,79 @@ export class CharacterManager {
         const u = char.model.userData;
         char.walkAnimTime += delta * 7;
 
-        if (char.isMoving) {
-          // Walk cycle: alternating legs and arms
+        const isWalking = char.isMoving || char.currentActionName === 'walk';
+
+        if (isWalking) {
+          // Walk cycle: natural hip & shoulder pivot pendulum swing
           const swing = Math.sin(char.walkAnimTime);
-          if (u.leftLeg) u.leftLeg.rotation.x = swing * 0.55;
-          if (u.rightLeg) u.rightLeg.rotation.x = -swing * 0.55;
-          if (u.leftArm) u.leftArm.rotation.x = -swing * 0.45;
-          if (u.rightArm) u.rightArm.rotation.x = swing * 0.45;
-          if (u.torso) u.torso.position.y = 1.08 + Math.abs(Math.sin(char.walkAnimTime * 2)) * 0.03;
-          if (u.head) u.head.position.y = 1.52 + Math.abs(Math.sin(char.walkAnimTime * 2)) * 0.03;
-        } else if (char.currentActionName === 'type') {
-          // Office desk typing: arms bent forward oscillating
-          const tap = Math.sin(char.walkAnimTime * 1.5);
+          if (u.leftLeg) u.leftLeg.rotation.x = swing * 0.52;
+          if (u.rightLeg) u.rightLeg.rotation.x = -swing * 0.52;
+          if (u.leftKnee) u.leftKnee.rotation.x = Math.max(0, swing * 0.45);
+          if (u.rightKnee) u.rightKnee.rotation.x = Math.max(0, -swing * 0.45);
+
           if (u.leftArm) {
-            u.leftArm.rotation.x = -0.9 + tap * 0.08;
-            u.leftArm.rotation.z = 0.2;
+            u.leftArm.rotation.x = -swing * 0.42;
+            u.leftArm.rotation.z = 0.08;
           }
           if (u.rightArm) {
-            u.rightArm.rotation.x = -0.9 - tap * 0.08;
-            u.rightArm.rotation.z = -0.2;
+            u.rightArm.rotation.x = swing * 0.42;
+            u.rightArm.rotation.z = -0.08;
           }
-          if (u.leftLeg) u.leftLeg.rotation.x = -1.4; // Seated legs
-          if (u.rightLeg) u.rightLeg.rotation.x = -1.4;
-          if (u.head) u.head.rotation.x = 0.15; // Looking down at desk
+
+          if (u.torso) u.torso.position.y = 1.08 + Math.abs(Math.sin(char.walkAnimTime * 2)) * 0.025;
+          if (u.head) u.head.position.y = 1.52 + Math.abs(Math.sin(char.walkAnimTime * 2)) * 0.025;
+          if (u.head) u.head.rotation.x = 0;
+        } else if (char.currentActionName === 'type') {
+          // Office desk typing: hips seated 90 deg, knees bent down 90 deg, arms tapping keyboard
+          if (u.leftLeg) u.leftLeg.rotation.x = -Math.PI / 2;
+          if (u.rightLeg) u.rightLeg.rotation.x = -Math.PI / 2;
+          if (u.leftKnee) u.leftKnee.rotation.x = Math.PI / 2;
+          if (u.rightKnee) u.rightKnee.rotation.x = Math.PI / 2;
+
+          const tap = Math.sin(char.walkAnimTime * 1.8);
+          if (u.leftArm) {
+            u.leftArm.rotation.x = -0.82 + tap * 0.07;
+            u.leftArm.rotation.z = 0.22;
+          }
+          if (u.rightArm) {
+            u.rightArm.rotation.x = -0.82 - tap * 0.07;
+            u.rightArm.rotation.z = -0.22;
+          }
+          if (u.head) u.head.rotation.x = 0.16; // Looking down at desk screen
         } else if (char.currentActionName === 'sit') {
-          // Seated pose
-          if (u.leftLeg) u.leftLeg.rotation.x = -1.4;
-          if (u.rightLeg) u.rightLeg.rotation.x = -1.4;
-          if (u.leftArm) u.leftArm.rotation.x = -0.5;
-          if (u.rightArm) u.rightArm.rotation.x = -0.5;
+          // Seated pose: hips at 90 deg, knees bent at 90 deg, feet on floor
+          if (u.leftLeg) u.leftLeg.rotation.x = -Math.PI / 2;
+          if (u.rightLeg) u.rightLeg.rotation.x = -Math.PI / 2;
+          if (u.leftKnee) u.leftKnee.rotation.x = Math.PI / 2;
+          if (u.rightKnee) u.rightKnee.rotation.x = Math.PI / 2;
+
+          if (u.leftArm) {
+            u.leftArm.rotation.x = -0.45;
+            u.leftArm.rotation.z = 0.14;
+          }
+          if (u.rightArm) {
+            u.rightArm.rotation.x = -0.45;
+            u.rightArm.rotation.z = -0.14;
+          }
           if (u.head) u.head.rotation.x = 0;
         } else {
-          // Idle breathing
+          // Idle breathing with natural relaxed posture
           const breath = Math.sin(char.walkAnimTime * 0.4);
           if (u.leftLeg) u.leftLeg.rotation.x = 0;
           if (u.rightLeg) u.rightLeg.rotation.x = 0;
+          if (u.leftKnee) u.leftKnee.rotation.x = 0;
+          if (u.rightKnee) u.rightKnee.rotation.x = 0;
+
           if (u.leftArm) {
-            u.leftArm.rotation.x = breath * 0.05;
-            u.leftArm.rotation.z = 0.06;
+            u.leftArm.rotation.x = breath * 0.04;
+            u.leftArm.rotation.z = 0.08;
           }
           if (u.rightArm) {
-            u.rightArm.rotation.x = -breath * 0.05;
-            u.rightArm.rotation.z = -0.06;
+            u.rightArm.rotation.x = -breath * 0.04;
+            u.rightArm.rotation.z = -0.08;
           }
-          if (u.head) u.head.position.y = 1.52 + breath * 0.015;
+          if (u.torso) u.torso.position.y = 1.08 + breath * 0.008;
+          if (u.head) u.head.position.y = 1.52 + breath * 0.012;
           if (u.head) u.head.rotation.x = 0;
         }
       }
@@ -450,18 +479,18 @@ export class CharacterManager {
           currentPos.addScaledVector(dir, char.speed * delta);
 
           // Smoothly rotate towards heading (safe modulus, no while loop)
-          const targetHeading = Math.atan2(dir.x, dir.z);
-          let diff = (targetHeading - char.model.rotation.y) % (Math.PI * 2);
+          const targetAngle = Math.atan2(dir.x, dir.z);
+          let diff = (targetAngle - char.model.rotation.y) % (Math.PI * 2);
           if (diff < -Math.PI) diff += Math.PI * 2;
           if (diff > Math.PI) diff -= Math.PI * 2;
-          char.model.rotation.y += diff * Math.min(1.0, delta * 9);
+          char.model.rotation.y += diff * Math.min(1.0, delta * 8.0);
         }
       }
     }
   }
 
   /**
-   * Procedural Stylized Humanoid - 60 FPS Optimized & Rich Detail
+   * Procedural Stylized Humanoid - 60 FPS Optimized & Rich Executive Detail
    */
   createFallbackPlaceholder(options = {}) {
     const group = new THREE.Group();
@@ -472,113 +501,281 @@ export class CharacterManager {
     const isFemale = role === 'female' || role === 'vip_female';
     const isPlayer = role === 'player';
 
-    // Color Palette
-    let suitColor = 0x0f172a; // Default charcoal
-    let pantsColor = 0x1e293b;
-    let tieColor = 0x38bdf8; // Sky blue
+    // Corporate Color Palette (Tailored Egyptian Banking Attire)
+    let suitColor = 0x1e293b; // Slate navy
+    let pantsColor = 0x0f172a; // Dark charcoal trousers
+    let tieColor = 0x0284c7; // Egyptian banking azure tie
+    let skinColor = 0xf5d0a9; // Egyptian skin tone
+    let hairColor = 0x1a120b; // Dark brown / black hair
+    let shoeColor = 0x18181b; // Polished black leather
 
     if (isGuard) {
-      suitColor = 0x1e3a8a; // Security navy blue
+      suitColor = 0x1e3a8a; // Security navy blue uniform
       pantsColor = 0x172554;
-      tieColor = 0xf59e0b;
+      tieColor = 0xf59e0b; // Golden epaulet accents
+      shoeColor = 0x09090b;
     } else if (isVIP) {
-      suitColor = 0x334155; // Executive slate gray
-      pantsColor = 0x1e293b;
-      tieColor = 0xd4af37; // Gold tie
+      suitColor = 0x27272a; // Executive charcoal bespoke suit
+      pantsColor = 0x18181b;
+      tieColor = 0xd4af37; // Royal Egyptian gold silk tie
+      shoeColor = 0x3f2213; // Italian dark cognac leather
     } else if (isFemale) {
-      suitColor = 0xb45309; // Elegant warm bronze/camel
+      suitColor = 0x78350f; // Elegant bronze/burgundy blazer
       pantsColor = 0x1e293b;
-      tieColor = 0xfef08a;
+      tieColor = 0xfef08a; // Silk gold scarf / lanyard
+      hairColor = 0x271911;
+      shoeColor = 0x18181b;
     } else if (isPlayer) {
-      suitColor = 0x0c4a6e; // Professional cobalt blue
+      suitColor = 0x0369a1; // Professional sharp Egyptian blue
       pantsColor = 0x0f172a;
       tieColor = 0x38bdf8;
+      shoeColor = 0x1c1917;
     } else if (options.clothesColor) {
       suitColor = options.clothesColor;
     }
 
-    const matSuit = new THREE.MeshStandardMaterial({ color: suitColor, roughness: 0.5 });
-    const matSkin = new THREE.MeshStandardMaterial({ color: 0xf5d0a9, roughness: 0.65 });
-    const matPants = new THREE.MeshStandardMaterial({ color: pantsColor, roughness: 0.6 });
-    const matWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
-    const matTie = new THREE.MeshStandardMaterial({ color: tieColor, roughness: 0.3 });
-    const matGold = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8, roughness: 0.2 });
+    const matSuit = new THREE.MeshStandardMaterial({ color: suitColor, roughness: 0.5, metalness: 0.05 });
+    const matSkin = new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.65 });
+    const matPants = new THREE.MeshStandardMaterial({ color: pantsColor, roughness: 0.65 });
+    const matWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35 });
+    const matTie = new THREE.MeshStandardMaterial({ color: tieColor, roughness: 0.25 });
+    const matGold = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.18 });
+    const matShoe = new THREE.MeshStandardMaterial({ color: shoeColor, roughness: 0.35, metalness: 0.15 });
+    const matHair = new THREE.MeshStandardMaterial({ color: hairColor, roughness: 0.85 });
 
-    // Head
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), matSkin);
-    head.position.y = 1.52;
+    // 1. Head & Neck Group
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 1.52, 0);
+
+    // Neck
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.075, 0.12, 12), matSkin);
+    neck.position.y = -0.10;
+    headGroup.add(neck);
+
+    // Head base (Spherical with chin contour)
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.145, 16, 16), matSkin);
+    head.scale.set(1.0, 1.15, 0.95);
     head.castShadow = true;
-    group.add(head);
+    headGroup.add(head);
 
-    // Hair / Cap
+    // Eyes
+    const matEye = new THREE.MeshBasicMaterial({ color: 0x1e293b });
+    const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 8), matEye);
+    leftEye.position.set(-0.045, 0.02, 0.135);
+    headGroup.add(leftEye);
+
+    const rightEye = leftEye.clone();
+    rightEye.position.x = 0.045;
+    headGroup.add(rightEye);
+
+    // Hair / Cap Styling
     if (isGuard) {
-      // Security Peaked Cap
-      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.19, 0.08, 16), matSuit);
-      cap.position.set(0, 1.63, 0);
-      group.add(cap);
-      const visor = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.02, 0.1), matSuit);
-      visor.position.set(0, 1.61, 0.14);
-      group.add(visor);
-    } else if (isFemale) {
-      // Stylish Hair Bun
-      const hairMat = new THREE.MeshStandardMaterial({ color: 0x271911, roughness: 0.8 });
-      const bun = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 14), hairMat);
-      bun.position.set(0, 1.64, -0.09);
-      group.add(bun);
-    } else {
-      // Short Hair
-      const hairMat = new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.8 });
-      const hair = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.18, 0.09, 14), hairMat);
-      hair.position.set(0, 1.62, -0.01);
-      group.add(hair);
-    }
+      // Security Officer Peaked Cap
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.17, 0.07, 16), matSuit);
+      cap.position.set(0, 0.11, -0.01);
+      headGroup.add(cap);
 
-    // Torso
-    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.55, 12), matSuit);
+      const visor = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.015, 0.09), matShoe);
+      visor.position.set(0, 0.09, 0.13);
+      headGroup.add(visor);
+
+      const badge = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.01, 8), matGold);
+      badge.rotation.x = Math.PI / 2;
+      badge.position.set(0, 0.12, 0.155);
+      headGroup.add(badge);
+    } else if (isFemale) {
+      // Professional Hijab / Styled Hair Bun
+      const hijab = new THREE.Mesh(new THREE.SphereGeometry(0.165, 16, 16), matSuit);
+      hijab.position.set(0, 0.03, -0.03);
+      hijab.scale.set(1.05, 1.2, 1.05);
+      headGroup.add(hijab);
+    } else {
+      // Groomed Short Hair with Side Part
+      const hair = new THREE.Mesh(new THREE.SphereGeometry(0.152, 14, 14), matHair);
+      hair.position.set(0, 0.04, -0.02);
+      hair.scale.set(1.02, 1.08, 1.02);
+      headGroup.add(hair);
+
+      // Glasses for analysts / clerks / player
+      if (isClerk || isPlayer) {
+        const matFrame = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8, roughness: 0.3 });
+        const frameL = new THREE.Mesh(new THREE.RingGeometry(0.022, 0.028, 12), matFrame);
+        frameL.position.set(-0.045, 0.02, 0.142);
+        headGroup.add(frameL);
+
+        const frameR = frameL.clone();
+        frameR.position.x = 0.045;
+        headGroup.add(frameR);
+
+        const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.006, 0.006), matFrame);
+        bridge.position.set(0, 0.02, 0.142);
+        headGroup.add(bridge);
+      }
+    }
+    group.add(headGroup);
+
+    // 2. Torso & Upper Body
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.16, 0.54, 14), matSuit);
     torso.position.y = 1.08;
+    torso.scale.set(1.15, 1.0, 0.82);
     torso.castShadow = true;
     group.add(torso);
 
-    // Shirt Collar & Tie
-    const shirt = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.24, 0.05), matWhite);
-    shirt.position.set(0, 1.22, 0.17);
+    // White Shirt Front
+    const shirt = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.26, 0.04), matWhite);
+    shirt.position.set(0, 1.21, 0.14);
     group.add(shirt);
 
-    const tie = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.22, 0.02), matTie);
-    tie.position.set(0, 1.18, 0.2);
+    // Silk Tie
+    const tie = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.24, 0.02), matTie);
+    tie.position.set(0, 1.17, 0.162);
     group.add(tie);
 
-    // Guard badge / Executive pin
-    if (isGuard || isVIP) {
-      const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.01, 8), matGold);
+    // Hanging Corporate ID Badge Card (كارت التعريف بالرقبة)
+    const lanyard = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.005, 4, 12, Math.PI), matTie);
+    lanyard.rotation.x = Math.PI / 2.3;
+    lanyard.position.set(0, 1.34, 0.06);
+    group.add(lanyard);
+
+    const idCard = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.07, 0.006), matWhite);
+    idCard.position.set(0, 1.10, 0.175);
+    group.add(idCard);
+
+    // Gold Executive Lapel Pin
+    if (isVIP || isGuard) {
+      const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.01, 8), matGold);
       pin.rotation.x = Math.PI / 2;
-      pin.position.set(0.1, 1.25, 0.19);
+      pin.position.set(0.11, 1.24, 0.155);
       group.add(pin);
     }
 
-    // Arms
-    const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.45, 0.1), matSuit);
-    leftArm.position.set(-0.25, 1.05, 0);
-    leftArm.castShadow = true;
-    group.add(leftArm);
+    // 3. Shoulders & Arms (Pivoted at Shoulders y = 1.28)
+    // Left Arm Pivot
+    const leftArmPivot = new THREE.Group();
+    leftArmPivot.position.set(-0.25, 1.28, 0);
 
-    const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.45, 0.1), matSuit);
-    rightArm.position.set(0.25, 1.05, 0);
-    rightArm.castShadow = true;
-    group.add(rightArm);
+    const leftUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.046, 0.26, 10), matSuit);
+    leftUpperArm.position.set(0, -0.13, 0);
+    leftUpperArm.castShadow = true;
+    leftArmPivot.add(leftUpperArm);
 
-    // Legs
-    const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.6, 0.12), matPants);
-    leftLeg.position.set(-0.11, 0.42, 0);
-    leftLeg.castShadow = true;
-    group.add(leftLeg);
+    const leftForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.040, 0.22, 10), matSuit);
+    leftForearm.position.set(0, -0.32, 0);
+    leftForearm.castShadow = true;
+    leftArmPivot.add(leftForearm);
 
-    const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.6, 0.12), matPants);
-    rightLeg.position.set(0.11, 0.42, 0);
-    rightLeg.castShadow = true;
-    group.add(rightLeg);
+    // White Shirt Cuff
+    const leftCuff = new THREE.Mesh(new THREE.CylinderGeometry(0.043, 0.043, 0.025, 10), matWhite);
+    leftCuff.position.set(0, -0.42, 0);
+    leftArmPivot.add(leftCuff);
 
-    group.userData = { leftLeg, rightLeg, leftArm, rightArm, head, torso };
+    // Left Hand
+    const leftHand = new THREE.Mesh(new THREE.SphereGeometry(0.042, 8, 8), matSkin);
+    leftHand.position.set(0, -0.46, 0);
+    leftArmPivot.add(leftHand);
+
+    group.add(leftArmPivot);
+
+    // Right Arm Pivot
+    const rightArmPivot = new THREE.Group();
+    rightArmPivot.position.set(0.25, 1.28, 0);
+
+    const rightUpperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.046, 0.26, 10), matSuit);
+    rightUpperArm.position.set(0, -0.13, 0);
+    rightUpperArm.castShadow = true;
+    rightArmPivot.add(rightUpperArm);
+
+    const rightForearm = new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.040, 0.22, 10), matSuit);
+    rightForearm.position.set(0, -0.32, 0);
+    rightForearm.castShadow = true;
+    rightArmPivot.add(rightForearm);
+
+    // White Shirt Cuff
+    const rightCuff = new THREE.Mesh(new THREE.CylinderGeometry(0.043, 0.043, 0.025, 10), matWhite);
+    rightCuff.position.set(0, -0.42, 0);
+    rightArmPivot.add(rightCuff);
+
+    // Executive Gold Watch on wrist
+    if (isVIP || isPlayer) {
+      const watch = new THREE.Mesh(new THREE.CylinderGeometry(0.047, 0.047, 0.02, 10), matGold);
+      watch.position.set(0, -0.41, 0);
+      rightArmPivot.add(watch);
+    }
+
+    // Right Hand
+    const rightHand = new THREE.Mesh(new THREE.SphereGeometry(0.042, 8, 8), matSkin);
+    rightHand.position.set(0, -0.46, 0);
+    rightArmPivot.add(rightHand);
+
+    group.add(rightArmPivot);
+
+    // 4. Hips & Legs (Pivoted at Hip Sockets y = 0.76)
+    // Left Leg Hip Pivot
+    const leftLegPivot = new THREE.Group();
+    leftLegPivot.position.set(-0.11, 0.76, 0);
+
+    const leftThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.052, 0.36, 10), matPants);
+    leftThigh.position.set(0, -0.18, 0);
+    leftThigh.castShadow = true;
+    leftLegPivot.add(leftThigh);
+
+    // Left Knee Pivot
+    const leftKnee = new THREE.Group();
+    leftKnee.position.set(0, -0.36, 0);
+
+    const leftShin = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.044, 0.34, 10), matPants);
+    leftShin.position.set(0, -0.17, 0);
+    leftShin.castShadow = true;
+    leftKnee.add(leftShin);
+
+    // Left Oxford Dress Shoe
+    const leftShoe = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.065, 0.20), matShoe);
+    leftShoe.position.set(0, -0.35, 0.04);
+    leftShoe.castShadow = true;
+    leftKnee.add(leftShoe);
+
+    leftLegPivot.add(leftKnee);
+    group.add(leftLegPivot);
+
+    // Right Leg Hip Pivot
+    const rightLegPivot = new THREE.Group();
+    rightLegPivot.position.set(0.11, 0.76, 0);
+
+    const rightThigh = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.052, 0.36, 10), matPants);
+    rightThigh.position.set(0, -0.18, 0);
+    rightThigh.castShadow = true;
+    rightLegPivot.add(rightThigh);
+
+    // Right Knee Pivot
+    const rightKnee = new THREE.Group();
+    rightKnee.position.set(0, -0.36, 0);
+
+    const rightShin = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.044, 0.34, 10), matPants);
+    rightShin.position.set(0, -0.17, 0);
+    rightShin.castShadow = true;
+    rightKnee.add(rightShin);
+
+    // Right Oxford Dress Shoe
+    const rightShoe = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.065, 0.20), matShoe);
+    rightShoe.position.set(0, -0.35, 0.04);
+    rightShoe.castShadow = true;
+    rightKnee.add(rightShoe);
+
+    rightLegPivot.add(rightKnee);
+    group.add(rightLegPivot);
+
+    // Store limb references in userData for natural physics/animation
+    group.userData = {
+      leftLeg: leftLegPivot,
+      rightLeg: rightLegPivot,
+      leftKnee,
+      rightKnee,
+      leftArm: leftArmPivot,
+      rightArm: rightArmPivot,
+      head: headGroup,
+      torso
+    };
+
     return group;
   }
 
