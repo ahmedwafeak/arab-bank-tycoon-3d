@@ -504,15 +504,39 @@ export class InteractableDesk {
       this.audio.playStamp ? this.audio.playStamp() : this.audio.playClick();
     }
 
+    const d = this.currentDossier;
+    const isFraudOrCounterfeit = d && (d.isCounterfeit || d.hasDiscrepancy || (d.iScore < 600 && d.amount > 100000));
+    let deficit = 0;
+    let isSuccess = true;
+
     if (decision === 'approve') {
+      if (isFraudOrCounterfeit) {
+        deficit = d.isCounterfeit ? (d.counterfeitCount * 200) : 5000;
+        isSuccess = false;
+      }
       mark.innerHTML = `<span style="color: #15803d; font-size: 22px; font-weight: 900; border: 3px solid #15803d; padding: 4px 18px; border-radius: 8px; transform: rotate(-5deg); display: inline-block;">مـعـتـمـد ✅</span>`;
       if (this.careerManager) {
-        this.careerManager.addXP(25, 'اعتماد معاملة مصرفية بنجاح');
+        this.careerManager.addXP(isSuccess ? 25 : 5, isSuccess ? 'اعتماد معاملة مصرفية بنجاح' : 'خطأ تمرير معاملة غير سليمة');
+        if (typeof this.careerManager.recordTransaction === 'function') {
+          this.careerManager.recordTransaction(isSuccess, deficit);
+          if (d && d.isCheque && isSuccess) {
+            this.careerManager.stageMetrics.chequesInspected = (this.careerManager.stageMetrics.chequesInspected || 0) + 1;
+          }
+        }
       }
     } else {
+      if (isFraudOrCounterfeit) {
+        isSuccess = true;
+      }
       mark.innerHTML = `<span style="color: #b91c1c; font-size: 22px; font-weight: 900; border: 3px solid #b91c1c; padding: 4px 18px; border-radius: 8px; transform: rotate(5deg); display: inline-block;">مـرفـوض ❌</span>`;
       if (this.careerManager) {
-        this.careerManager.addXP(20, 'رفض معاملة غير مستوفية للشروط');
+        this.careerManager.addXP(isSuccess ? 30 : 15, isSuccess ? 'كشف تزوير ورفض المعاملة بنجاح' : 'رفض معاملة بنكية');
+        if (typeof this.careerManager.recordTransaction === 'function') {
+          this.careerManager.recordTransaction(isSuccess, 0);
+          if (d && d.isCheque && isSuccess) {
+            this.careerManager.stageMetrics.chequesInspected = (this.careerManager.stageMetrics.chequesInspected || 0) + 1;
+          }
+        }
       }
     }
 

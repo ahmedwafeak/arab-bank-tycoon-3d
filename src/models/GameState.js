@@ -58,6 +58,7 @@ export class GameState {
     this.legalManager = null;
     this.trophiesManager = null;
     this.careerManager = null;
+    this.careerProgression = null;
     this.bankRunManager = null;
     this.neoBankManager = null;
     this.executiveLifeManager = null;
@@ -345,12 +346,19 @@ export class GameState {
       this.licensesManager.addXP(xpAward, 'إدارة عمليات الشهر المالي');
     }
 
+    // Process Personal Career Monthly Salary and Lifestyle Expenses
+    let careerReport = null;
+    if (this.careerProgression && this.careerProgression.isStarted && typeof this.careerProgression.processMonthlyCycle === 'function') {
+      careerReport = this.careerProgression.processMonthlyCycle();
+    }
+
     this.saveGame();
 
     return {
       report: this.lastMonthReport,
       dilemma: dilemma,
-      audit: cbeAuditReport
+      audit: cbeAuditReport,
+      careerReport: careerReport
     };
   }
 
@@ -457,7 +465,8 @@ export class GameState {
           bankRun: this.bankRunManager ? this.bankRunManager.getState() : null,
           neoBank: this.neoBankManager ? this.neoBankManager.getState() : null,
           vendors: this.vendorsManager ? this.vendorsManager.getState() : null,
-          licenses: this.licensesManager ? this.licensesManager.getState() : null
+          licenses: this.licensesManager ? this.licensesManager.getState() : null,
+          careerProgression: this.careerProgression ? this.careerProgression.exportState() : null
         }
       };
       localStorage.setItem('egyptian_bank_saved', JSON.stringify(data));
@@ -701,6 +710,7 @@ export class GameState {
       if (this.neoBankManager && sub.neoBank) this.neoBankManager.loadState(sub.neoBank);
       if (this.vendorsManager && sub.vendors) this.vendorsManager.loadState(sub.vendors);
       if (this.licensesManager && sub.licenses) this.licensesManager.loadState(sub.licenses);
+      if (this.careerProgression && sub.careerProgression) this.careerProgression.importState(sub.careerProgression);
     } catch (e) {
       console.warn('loadSubsystemsState failed', e);
     }

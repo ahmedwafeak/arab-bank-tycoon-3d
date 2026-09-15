@@ -56,6 +56,8 @@ export class BankFloorScene {
     this.vaultMesh = null;
     this.cashStacksGroup = null;
     this.particles = [];
+    this.sharedCashGeometry = new THREE.PlaneGeometry(0.2, 0.12);
+    this.sharedCashMaterial = new THREE.MeshBasicMaterial({ color: 0x34d399, side: THREE.DoubleSide });
 
     // NPCs
     this.customers = [];
@@ -2112,9 +2114,7 @@ export class BankFloorScene {
   }
 
   spawnCashParticle(position) {
-    const geo = new THREE.PlaneGeometry(0.2, 0.12);
-    const mat = new THREE.MeshBasicMaterial({ color: 0x34d399, side: THREE.DoubleSide });
-    const pMesh = new THREE.Mesh(geo, mat);
+    const pMesh = new THREE.Mesh(this.sharedCashGeometry, this.sharedCashMaterial);
     pMesh.position.copy(position);
     this.scene.add(pMesh);
 
@@ -2294,6 +2294,8 @@ export class BankFloorScene {
       this.canvas.removeEventListener('pointerdown', this.onPointerDown);
       this.canvas.remove();
     }
+    if (this.sharedCashGeometry) this.sharedCashGeometry.dispose();
+    if (this.sharedCashMaterial) this.sharedCashMaterial.dispose();
     if (this.renderer) {
       this.renderer.dispose();
     }

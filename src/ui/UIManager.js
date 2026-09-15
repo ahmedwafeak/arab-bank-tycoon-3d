@@ -434,6 +434,27 @@ export class UIManager {
         return;
       }
 
+      // Open Career Progression Ladder Modal
+      if (e.target.closest('#career-ladder-hub-btn') || e.target.closest('#btn-open-career-ladder')) {
+        this.audio.playClick();
+        this.showCareerLadderModal();
+        return;
+      }
+
+      // Open Lifestyle & Luxury Store Modal
+      if (e.target.closest('#lifestyle-store-hub-btn') || e.target.closest('#btn-open-lifestyle-store')) {
+        this.audio.playClick();
+        this.showLifestyleStoreModal();
+        return;
+      }
+
+      // Open Workplace Dilemmas & Headhunter Hub
+      if (e.target.closest('#workplace-dilemmas-hub-btn') || e.target.closest('#btn-open-workplace-dilemmas')) {
+        this.audio.playClick();
+        this.showWorkplaceDilemmasModal();
+        return;
+      }
+
       // Reset Career
       if (e.target.closest('#reset-career-btn')) {
         if (confirm('هل تريد إعادة مسيرة الموظف والبدء من جديد؟')) {
@@ -2324,6 +2345,60 @@ export class UIManager {
           </div>
         </header>
 
+        <!-- Personal Vital Stats & Progression Toolbar -->
+        <div class="career-vitals-strip" style="background: rgba(15, 23, 42, 0.98); padding: 7px 20px; border-bottom: 1px solid rgba(56, 189, 248, 0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; z-index: 99;">
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div class="vital-pill" title="الطاقة والنشاط الجسدي (تتجدد شهرياً بالسكن المريح)" style="display: flex; align-items: center; gap: 6px; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 20px; padding: 3px 12px; font-size: 12px;">
+              <span>⚡</span>
+              <span style="color: #94a3b8;">الطاقة:</span>
+              <strong style="color: #facc15;">${Math.round(cm.energy || 85)}%</strong>
+            </div>
+
+            <div class="vital-pill" title="مؤشر التوتر والضغط العصبي (يقل باقتناء السيارات والرفاهية)" style="display: flex; align-items: center; gap: 6px; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 20px; padding: 3px 12px; font-size: 12px;">
+              <span>🧘</span>
+              <span style="color: #94a3b8;">التوتر:</span>
+              <strong style="color: ${(cm.stress || 15) > 60 ? '#ef4444' : '#34d399'};">${Math.round(cm.stress || 15)}%</strong>
+            </div>
+
+            <div class="vital-pill" title="البرستيج والمكانة الاجتماعية (يفتح ثقة كبار العملاء والترقيات)" style="display: flex; align-items: center; gap: 6px; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 20px; padding: 3px 12px; font-size: 12px;">
+              <span>👑</span>
+              <span style="color: #94a3b8;">البرستيج:</span>
+              <strong style="color: #c084fc;">${cm.socialPrestige || 10}/100</strong>
+            </div>
+
+            <div class="vital-pill" title="النزاهة والضمير المهني (حصانة الرقابة والتفتيش)" style="display: flex; align-items: center; gap: 6px; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 3px 12px; font-size: 12px;">
+              <span>⚖️</span>
+              <span style="color: #94a3b8;">النزاهة:</span>
+              <strong style="color: #10b981;">${cm.integrity || 90}%</strong>
+            </div>
+
+            <div class="vital-pill" title="الكاريزما والإقناع (تزيد مبيعات الشهادات والتفاوض)" style="display: flex; align-items: center; gap: 6px; background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; padding: 3px 12px; font-size: 12px;">
+              <span>✨</span>
+              <span style="color: #94a3b8;">الكاريزما:</span>
+              <strong style="color: #38bdf8;">${cm.charisma || 15}</strong>
+            </div>
+
+            <div class="vital-pill" title="الرصيد الشخصي بالجنيه المصري (مفصول تماماً عن خزينة البنك)" style="display: flex; align-items: center; gap: 6px; background: rgba(6, 78, 59, 0.5); border: 1px solid #10b981; border-radius: 20px; padding: 3px 14px; font-size: 12px;">
+              <span>💵</span>
+              <span style="color: #a7f3d0;">الرصيد الشخصي:</span>
+              <strong style="color: #34d399; font-size: 13.5px;">${(cm.personalWealth || cm.wealth || 15000).toLocaleString('ar-EG')} ج.م</strong>
+            </div>
+          </div>
+
+          <!-- Main System Action Hubs -->
+          <div class="d-flex align-items-center gap-2">
+            <button id="career-ladder-hub-btn" class="btn btn-sm" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 800; border-radius: 10px; display: flex; align-items: center; gap: 6px;" title="عرض سلم الترقيات الـ 7 ومتطلبات الترقية القادمة">
+              <span>📈</span> سلم الترقيات (المستوى ${(cm.currentStageIndex || 0) + 1}/7)
+            </button>
+            <button id="lifestyle-store-hub-btn" class="btn btn-sm" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; font-weight: 800; border-radius: 10px; display: flex; align-items: center; gap: 6px;" title="شراء السيارات والعقارات والبدل والساعات الفاخرة">
+              <span>🛍️</span> متجر الرفاهية
+            </button>
+            <button id="workplace-dilemmas-hub-btn" class="btn btn-sm" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; font-weight: 800; border-radius: 10px; display: flex; align-items: center; gap: 6px;" title="المعضلات الأخلاقية والمهنية اليومية وعروض الاستقطاب">
+              <span>⚖️</span> معضلات العمل
+            </button>
+          </div>
+        </div>
+
         <!-- 3D Bank Floor Viewport (WASD movement, NPC dialogues, teller interaction) -->
         <div style="flex: 1; position: relative; width: 100%; height: 100%;">
           ${this.renderBankFloorContainer()}
@@ -2622,6 +2697,628 @@ export class UIManager {
         if (e.target === overlay) {
           this.closeModal();
         }
+      });
+    }
+  }
+
+  showCareerLadderModal() {
+    let modalContainer = document.getElementById('modal-container');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'modal-container';
+      document.body.appendChild(modalContainer);
+    }
+
+    const cm = this.state.careerManager;
+    if (!cm) return;
+
+    const currentStage = cm.getCurrentStage();
+    const promotionCheck = cm.checkPromotionEligibility();
+    const isCEO = cm.currentStageIndex === cm.stages.length - 1;
+
+    modalContainer.innerHTML = `
+      <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-card" style="max-width: 920px; max-height: 90vh; overflow-y: auto;">
+          <div class="modal-header d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #f59e0b33;">
+            <div class="d-flex align-items-center gap-3">
+              <span style="font-size: 28px;">📈</span>
+              <div>
+                <h3 style="margin: 0; color: #f8fafc; font-weight: 900;">سلم الصعود المصرفي (7 رتب وظيفية)</h3>
+                <div style="font-size: 12px; color: #94a3b8;">من كاونتر الصراف إلى رئاسة مجلس الإدارة والعضو المنتدب</div>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; font-size: 12px;">
+                الرتبة الحالية: ${cm.currentStageIndex + 1} من 7
+              </span>
+            </div>
+          </div>
+
+          <div class="modal-body" style="padding-top: 16px;">
+            <!-- Current Stage Status Banner -->
+            <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98)); border: 2px solid ${promotionCheck.eligible ? '#10b981' : '#38bdf8'}; border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+              <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                  <div style="font-size: 11px; color: #38bdf8; font-weight: 800; text-transform: uppercase;">الموقع الوظيفي الفعلي</div>
+                  <h4 style="margin: 4px 0; font-size: 19px; color: #f8fafc; font-weight: 900;">
+                    ${cm.getStageTitle()}
+                  </h4>
+                  <div style="font-size: 13px; color: #cbd5e1; margin-top: 2px;">
+                    🏢 ${currentStage.department} | 📍 ${currentStage.deskName}
+                  </div>
+                </div>
+                <div style="text-align: left;">
+                  <div style="font-size: 11px; color: #94a3b8;">الراتب الأساسي الشهري</div>
+                  <div style="font-size: 20px; font-weight: 900; color: #34d399;">
+                    ${currentStage.baseSalary.toLocaleString('ar-EG')} ج.م
+                  </div>
+                </div>
+              </div>
+
+              <div style="font-size: 12.5px; color: #94a3b8; margin-top: 10px; line-height: 1.5; border-right: 3px solid #38bdf8; padding-right: 10px;">
+                ${currentStage.desc}
+              </div>
+
+              <!-- Live Promotion Progress Checklist -->
+              ${!isCEO ? `
+              <div style="margin-top: 16px; background: rgba(15, 23, 42, 0.7); border-radius: 12px; padding: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <strong style="color: #e2e8f0; font-size: 13px;">📋 شروط استحقاق الترقية للرتبة التالية:</strong>
+                  <span class="badge" style="background: ${promotionCheck.eligible ? '#065f46' : '#7f1d1d'}; color: ${promotionCheck.eligible ? '#34d399' : '#f87171'}; font-size: 11px;">
+                    ${promotionCheck.eligible ? '✅ مستوفٍ لكافة المعايير الرسمية' : `⚠️ متبقٍ ${promotionCheck.reasons.length} متطلبات`}
+                  </span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px;">
+                  ${(() => {
+                    const req = currentStage.requirements || {};
+                    const m = cm.stageMetrics || {};
+                    const items = [];
+
+                    if (req.minTransactions) {
+                      const pct = Math.min(100, Math.round((m.transactionsCount / req.minTransactions) * 100));
+                      items.push({ label: 'معاملات الشباك', cur: m.transactionsCount, target: req.minTransactions, unit: 'معاملة', pct });
+                    }
+                    if (req.minCheques) {
+                      const pct = Math.min(100, Math.round((m.chequesInspected / req.minCheques) * 100));
+                      items.push({ label: 'فحص الشيكات الورقية', cur: m.chequesInspected, target: req.minCheques, unit: 'شيك', pct });
+                    }
+                    if (req.minCertificatesValue) {
+                      const pct = Math.min(100, Math.round((m.certificatesSoldValue / req.minCertificatesValue) * 100));
+                      items.push({ label: 'تارجت الشهادات', cur: `${(m.certificatesSoldValue / 1000000).toFixed(1)}M`, target: `${(req.minCertificatesValue / 1000000).toFixed(1)}M`, unit: 'ج.م', pct });
+                    }
+                    if (req.minCreditFiles) {
+                      const pct = Math.min(100, Math.round((m.creditFilesAnalyzed / req.minCreditFiles) * 100));
+                      items.push({ label: 'ملفات ائتمان الشركات', cur: m.creditFilesAnalyzed, target: req.minCreditFiles, unit: 'ملف', pct });
+                    }
+                    if (req.minVIPDeposits) {
+                      const pct = Math.min(100, Math.round((m.vipDepositsAttracted / req.minVIPDeposits) * 100));
+                      items.push({ label: 'ودائع كبار العملاء VIP', cur: `${(m.vipDepositsAttracted / 1000000).toFixed(1)}M`, target: `${(req.minVIPDeposits / 1000000).toFixed(1)}M`, unit: 'ج.م', pct });
+                    }
+                    if (req.minBranchProfit) {
+                      const pct = Math.min(100, Math.round((m.branchAnnualProfits / req.minBranchProfit) * 100));
+                      items.push({ label: 'أرباح الفرع المحققة', cur: `${(m.branchAnnualProfits / 1000000).toFixed(1)}M`, target: `${(req.minBranchProfit / 1000000).toFixed(1)}M`, unit: 'ج.م', pct });
+                    }
+                    if (req.minPrestige) {
+                      const pct = Math.min(100, Math.round((cm.socialPrestige / req.minPrestige) * 100));
+                      items.push({ label: 'البرستيج والمكانة', cur: cm.socialPrestige, target: req.minPrestige, unit: 'نقطة', pct });
+                    }
+                    if (req.minIntegrity) {
+                      const pct = Math.min(100, Math.round((cm.integrity / req.minIntegrity) * 100));
+                      items.push({ label: 'النزاهة والرقابة', cur: cm.integrity, target: req.minIntegrity, unit: '%', pct });
+                    }
+                    if (req.minPerformance) {
+                      const pct = Math.min(100, Math.round((m.performanceRating / req.minPerformance) * 100));
+                      items.push({ label: 'تقييم الأداء السنوي', cur: `${Math.round(m.performanceRating)}%`, target: `${req.minPerformance}%`, unit: '', pct });
+                    }
+
+                    return items.map(it => `
+                      <div style="background: rgba(30, 41, 59, 0.7); border-radius: 8px; padding: 8px 10px;">
+                        <div class="d-flex justify-content-between" style="font-size: 11.5px; margin-bottom: 4px;">
+                          <span style="color: #94a3b8;">${it.label}</span>
+                          <strong style="color: ${it.pct >= 100 ? '#34d399' : '#f59e0b'};">${it.cur} / ${it.target} ${it.unit}</strong>
+                        </div>
+                        <div style="background: rgba(51, 65, 85, 0.8); height: 6px; border-radius: 3px; overflow: hidden;">
+                          <div style="width: ${it.pct}%; height: 100%; background: ${it.pct >= 100 ? '#10b981' : '#f59e0b'}; border-radius: 3px; transition: width 0.3s ease;"></div>
+                        </div>
+                      </div>
+                    `).join('');
+                  })()}
+                </div>
+
+                <div class="mt-3 text-center">
+                  <button id="btn-request-promotion" class="btn btn-lg ${promotionCheck.eligible ? 'btn-success' : 'btn-secondary'}" ${promotionCheck.eligible ? '' : 'disabled'} style="font-weight: 900; padding: 10px 30px; border-radius: 12px; box-shadow: ${promotionCheck.eligible ? '0 0 20px rgba(16, 185, 129, 0.5)' : 'none'};">
+                    ${promotionCheck.eligible ? '🎖️ رفع طلب الترقية الرسمية للجنة الموارد البشرية' : '🔒 استكمل المتطلبات المتبقية لفتح الترقية'}
+                  </button>
+                </div>
+              </div>
+              ` : `
+              <div style="margin-top: 16px; background: rgba(120, 53, 15, 0.4); border: 1.5px solid #f59e0b; border-radius: 12px; padding: 14px; text-align: center;">
+                <h4 style="color: #fbbf24; margin: 0 0 6px 0; font-size: 16px; font-weight: 900;">👑 تهانينا! لقد بلغت ذروة الهرم المصرفي (Chairman & CEO)</h4>
+                <p style="color: #fde68a; font-size: 12.5px; margin: 0 0 12px 0;">
+                  أنت الآن القائد الأعلى للبنك! لقد فتحت إمبراطورية البنوك التجارية (Tycoon Mode) بكافة أقسامها وصلاحيات افتتاح الفروع وإدارة مجلس الإدارة.
+                </p>
+                <button id="btn-unlock-tycoon-mode" class="btn btn-warning btn-lg" style="font-weight: 900; padding: 10px 28px; border-radius: 12px;">
+                  🏛️ تدشين وتأسيس بنكك التجاري الكبير (Tycoon Mode)
+                </button>
+              </div>
+              `}
+            </div>
+
+            <!-- All 7 Stages Progression Tree -->
+            <h4 style="color: #e2e8f0; font-size: 14px; margin: 0 0 12px 0; font-weight: 800;">
+              🗺️ خارطة الترقيات الوظيفية المتكاملة:
+            </h4>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              ${cm.stages.map((stg, idx) => {
+                const isCurrent = idx === cm.currentStageIndex;
+                const isPassed = idx < cm.currentStageIndex;
+                const isLocked = idx > cm.currentStageIndex;
+                const isFemale = cm.gender === 'female';
+                const title = isFemale ? stg.title.f : stg.title.m;
+
+                return `
+                  <div style="display: flex; align-items: center; gap: 12px; background: ${isCurrent ? 'rgba(56, 189, 248, 0.12)' : isPassed ? 'rgba(16, 185, 129, 0.08)' : 'rgba(15, 23, 42, 0.6)'}; border: 1.5px solid ${isCurrent ? '#38bdf8' : isPassed ? '#10b981' : 'rgba(255,255,255,0.06)'}; border-radius: 12px; padding: 10px 16px; opacity: ${isLocked ? '0.65' : '1'};">
+                    <div style="width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; background: ${isCurrent ? '#38bdf8' : isPassed ? '#10b981' : '#334155'}; color: #fff; flex-shrink: 0;">
+                      ${isPassed ? '✓' : idx + 1}
+                    </div>
+
+                    <div style="flex: 1;">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <strong style="color: ${isCurrent ? '#38bdf8' : isPassed ? '#34d399' : '#cbd5e1'}; font-size: 14px;">
+                          ${title}
+                        </strong>
+                        <span style="font-size: 12px; color: #34d399; font-weight: 800;">
+                          ${stg.baseSalary.toLocaleString('ar-EG')} ج.م / شهر
+                        </span>
+                      </div>
+                      <div style="font-size: 11.5px; color: #94a3b8; margin-top: 2px;">
+                        ${stg.department} | ${stg.deskName}
+                      </div>
+                    </div>
+
+                    <div>
+                      ${isCurrent ? '<span class="badge" style="background: #0284c7; color: #fff;">رتبتك الحالية ⭐</span>' : isPassed ? '<span class="badge" style="background: #065f46; color: #a7f3d0;">تم اجتيازها ✅</span>' : '<span class="badge" style="background: #334155; color: #94a3b8;">مغلقة 🔒</span>'}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="modal-footer mt-3">
+            <button id="close-career-ladder-modal-btn" class="btn btn-secondary w-full">إغلاق ✕</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Bind listeners
+    document.getElementById('close-career-ladder-modal-btn')?.addEventListener('click', () => this.closeModal());
+    document.getElementById('btn-request-promotion')?.addEventListener('click', () => {
+      const res = cm.promoteToNextStage();
+      if (res.success) {
+        if (this.audio) this.audio.playSuccess();
+        this.closeModal();
+        this.showToast(res.msg, 'success', 8000);
+        this.renderCareerFloorView();
+        this.initOrResumeBankFloor();
+      } else {
+        if (this.audio) this.audio.playError();
+        alert(res.msg);
+      }
+    });
+    document.getElementById('btn-unlock-tycoon-mode')?.addEventListener('click', () => {
+      const boot = cm.exportToTycoon();
+      this.state.applyCareerBootstrap(boot);
+      this.closeModal();
+      this.showToast('🚀 انطلقت رسمياً في نمط إدارة البنك وتوسيعه كرئيس تنفيذي!', 'success', 6000);
+      this.render();
+    });
+
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) this.closeModal();
+      });
+    }
+  }
+
+  showLifestyleStoreModal(activeTab = 'vehicles') {
+    let modalContainer = document.getElementById('modal-container');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'modal-container';
+      document.body.appendChild(modalContainer);
+    }
+
+    const cm = this.state.careerManager;
+    if (!cm || !cm.lifestyle) return;
+
+    const bonuses = cm.lifestyle.calculateTotalBonuses();
+    const catalog = cm.lifestyle.catalog;
+
+    const tabs = [
+      { id: 'vehicles', name: 'معرض السيارات', icon: '🚗', items: catalog.vehicles },
+      { id: 'realEstate', name: 'المقار والعقارات', icon: '🏢', items: catalog.realEstate },
+      { id: 'wardrobe', name: 'الأزياء والساعات', icon: '👔', items: [...catalog.wardrobe, ...catalog.watches] },
+      { id: 'memberships', name: 'النوادي والنخبة', icon: '🏌️', items: catalog.memberships }
+    ];
+
+    const currentTabObj = tabs.find(t => t.id === activeTab) || tabs[0];
+
+    modalContainer.innerHTML = `
+      <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-card" style="max-width: 920px; max-height: 90vh; overflow-y: auto;">
+          <div class="modal-header d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #8b5cf633;">
+            <div class="d-flex align-items-center gap-3">
+              <span style="font-size: 28px;">🛍️</span>
+              <div>
+                <h3 style="margin: 0; color: #f8fafc; font-weight: 900;">متجر أسلوب الحياة واقتصاد الرفاهية</h3>
+                <div style="font-size: 12px; color: #94a3b8;">استثمر رصيدك الشخصي لرفع البرستيج وتخفيض التوتر وتأهيلك لترقيات كبار العملاء</div>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; font-size: 13.5px; padding: 6px 14px; font-weight: 900;">
+                💵 رصيدك الشخصي: ${(cm.personalWealth).toLocaleString('ar-EG')} ج.م
+              </span>
+            </div>
+          </div>
+
+          <!-- Cumulative Bonuses Bar -->
+          <div style="background: rgba(15, 23, 42, 0.85); border-radius: 12px; padding: 10px 16px; margin: 14px 0; display: flex; justify-content: space-around; align-items: center; border: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; gap: 8px;">
+            <div style="font-size: 12px; color: #cbd5e1;">
+              👑 دعم البرستيج: <strong style="color: #c084fc;">+${bonuses.prestige}</strong>
+            </div>
+            <div style="font-size: 12px; color: #cbd5e1;">
+              🧘 تخفيف التوتر: <strong style="color: #34d399;">-${bonuses.stressReduction}%</strong>
+            </div>
+            <div style="font-size: 12px; color: #cbd5e1;">
+              ✨ الكاريزما المكتسبة: <strong style="color: #38bdf8;">+${bonuses.charisma}</strong>
+            </div>
+            <div style="font-size: 12px; color: #cbd5e1;">
+              📉 مصاريف صيانة شهرية: <strong style="color: #f87171;">-${bonuses.monthlyExpenses.toLocaleString('ar-EG')} ج.م</strong>
+            </div>
+          </div>
+
+          <!-- Category Tabs -->
+          <div style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+            ${tabs.map(tab => `
+              <button class="btn btn-sm ${tab.id === activeTab ? 'btn-primary' : 'btn-outline-secondary'}" data-lifestyle-tab="${tab.id}" style="border-radius: 10px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                <span>${tab.icon}</span> ${tab.name}
+              </button>
+            `).join('')}
+          </div>
+
+          <!-- Items Grid -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 14px;">
+            ${currentTabObj.items.map(item => {
+              const isOwned = cm.lifestyle.isOwned(item.id);
+              const isActive = (
+                cm.lifestyle.activeVehicle === item.id ||
+                cm.lifestyle.activeResidence === item.id ||
+                cm.lifestyle.activeWardrobe === item.id ||
+                cm.lifestyle.activeWatch === item.id
+              );
+              const canAfford = cm.personalWealth >= item.price;
+
+              return `
+                <div style="background: rgba(30, 41, 59, 0.85); border: 1.5px solid ${isActive ? '#8b5cf6' : isOwned ? '#10b981' : 'rgba(255,255,255,0.08)'}; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; box-shadow: ${isActive ? '0 0 16px rgba(139, 92, 246, 0.3)' : 'none'};">
+                  <div>
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="d-flex align-items-center gap-2">
+                        <span style="font-size: 26px;">${item.icon}</span>
+                        <div>
+                          <h4 style="margin: 0; font-size: 14.5px; color: #f8fafc; font-weight: 800;">${item.name}</h4>
+                          <span style="font-size: 11px; color: #94a3b8;">${item.category === 'vehicles' ? 'مركبة' : item.category === 'realEstate' ? 'عقار سكني' : item.category === 'wardrobe' ? 'مظهر شخصي' : 'عضوية'}</span>
+                        </div>
+                      </div>
+                      <div style="text-align: left;">
+                        <span style="font-size: 14px; font-weight: 900; color: ${item.price === 0 ? '#94a3b8' : '#34d399'};">
+                          ${item.price === 0 ? 'مجاني (أساسي)' : `${item.price.toLocaleString('ar-EG')} ج.م`}
+                        </span>
+                        ${item.monthlyExpense > 0 ? `<div style="font-size: 10.5px; color: #f87171;">-${item.monthlyExpense.toLocaleString('ar-EG')} ج.م / شهر</div>` : ''}
+                      </div>
+                    </div>
+
+                    <p style="font-size: 12px; color: #cbd5e1; margin: 8px 0; line-height: 1.45;">
+                      ${item.desc}
+                    </p>
+
+                    <!-- Stat Badges -->
+                    <div class="d-flex gap-2 flex-wrap" style="font-size: 11px;">
+                      ${item.prestigeBonus ? `<span class="badge" style="background: rgba(168, 85, 247, 0.2); color: #c084fc;">👑 +${item.prestigeBonus} برستيج</span>` : ''}
+                      ${item.stressReduction ? `<span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">🧘 -${item.stressReduction}% توتر</span>` : ''}
+                      ${item.stressPenalty ? `<span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #f87171;">⚠️ +${item.stressPenalty}% توتر</span>` : ''}
+                      ${item.energyRecovery ? `<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">⚡ استشفاء ${item.energyRecovery}%</span>` : ''}
+                      ${item.charismaBonus ? `<span class="badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;">✨ +${item.charismaBonus} كاريزما</span>` : ''}
+                    </div>
+                  </div>
+
+                  <div style="margin-top: 6px;">
+                    ${isActive ? `
+                      <button class="btn btn-sm w-full" disabled style="background: rgba(139, 92, 246, 0.25); color: #c084fc; border: 1px solid #8b5cf6; font-weight: 800;">
+                        مفعل حالياً للاستخدام اليومي ✨
+                      </button>
+                    ` : isOwned ? `
+                      <button class="btn btn-sm btn-outline-success w-full" data-equip-asset="${item.id}" style="font-weight: 800;">
+                        🔄 تفعيل للاستخدام
+                      </button>
+                    ` : `
+                      <button class="btn btn-sm ${canAfford ? 'btn-primary' : 'btn-secondary'} w-full" ${canAfford ? '' : 'disabled'} data-buy-asset="${item.id}" style="font-weight: 800;">
+                        ${canAfford ? `🛒 شراء واقتناء (${item.price.toLocaleString('ar-EG')} ج.م)` : '🔒 الرصيد الشخصي غير كافٍ'}
+                      </button>
+                    `}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <div class="modal-footer mt-4">
+            <button id="close-lifestyle-store-btn" class="btn btn-secondary w-full">إغلاق ✕</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Bind Category Tab Switchers
+    modalContainer.querySelectorAll('[data-lifestyle-tab]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const tab = e.currentTarget.dataset.lifestyleTab;
+        this.showLifestyleStoreModal(tab);
+      });
+    });
+
+    // Bind Buy Buttons
+    modalContainer.querySelectorAll('[data-buy-asset]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const assetId = e.currentTarget.dataset.buyAsset;
+        const res = cm.lifestyle.buyAsset(assetId, cm.personalWealth);
+        if (res.success) {
+          cm.personalWealth -= res.price;
+          cm.recalculateStats();
+          cm.saveCareer();
+          if (this.audio) this.audio.playCash ? this.audio.playCash() : this.audio.playSuccess();
+          this.showToast(res.msg, 'success', 4000);
+          this.showLifestyleStoreModal(activeTab);
+          this.renderCareerFloorView();
+          this.initOrResumeBankFloor();
+        } else {
+          if (this.audio) this.audio.playError();
+          alert(res.msg);
+        }
+      });
+    });
+
+    // Bind Equip Buttons
+    modalContainer.querySelectorAll('[data-equip-asset]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const assetId = e.currentTarget.dataset.equipAsset;
+        const res = cm.lifestyle.equipAsset(assetId);
+        if (res.success) {
+          cm.recalculateStats();
+          cm.saveCareer();
+          if (this.audio) this.audio.playClick();
+          this.showToast(res.msg, 'info', 3000);
+          this.showLifestyleStoreModal(activeTab);
+          this.renderCareerFloorView();
+          this.initOrResumeBankFloor();
+        }
+      });
+    });
+
+    document.getElementById('close-lifestyle-store-btn')?.addEventListener('click', () => this.closeModal());
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) this.closeModal();
+      });
+    }
+  }
+
+  showWorkplaceDilemmasModal() {
+    let modalContainer = document.getElementById('modal-container');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'modal-container';
+      document.body.appendChild(modalContainer);
+    }
+
+    const cm = this.state.careerManager;
+    if (!cm || !cm.dilemmas) return;
+
+    const dilemmas = cm.dilemmas.getAvailableDilemmas(cm.currentStageIndex);
+    const headhunters = cm.dilemmas.getHeadhunterOffersForStage(cm.currentStageIndex);
+
+    const activeDilemma = dilemmas[0] || null;
+    const activeOffer = headhunters[0] || null;
+
+    modalContainer.innerHTML = `
+      <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-card" style="max-width: 860px; max-height: 90vh; overflow-y: auto;">
+          <div class="modal-header d-flex justify-content-between align-items-center" style="border-bottom: 2px solid #0ea5e933;">
+            <div class="d-flex align-items-center gap-3">
+              <span style="font-size: 28px;">⚖️</span>
+              <div>
+                <h3 style="margin: 0; color: #f8fafc; font-weight: 900;">معضلات العمل اليومية وعروض الاستقطاب</h3>
+                <div style="font-size: 12px; color: #94a3b8;">مواقف واقعية واختبارات نزاهة وأمانة، وعروض مغرية من بنوك منافسة</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-body" style="padding-top: 16px;">
+            ${activeOffer ? `
+            <!-- Headhunter Section -->
+            <div style="background: linear-gradient(135deg, rgba(30, 27, 75, 0.95), rgba(15, 23, 42, 0.95)); border: 2px solid #8b5cf6; border-radius: 16px; padding: 18px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge" style="background: #8b5cf6; color: #fff; font-weight: 900; font-size: 11px;">
+                  🌐 عرض استقطاب كفاءات رسمي (Headhunting Offer)
+                </span>
+                <span style="font-size: 12px; color: #cbd5e1; font-weight: 800;">
+                  بواسطة: ${activeOffer.headhunterName} (${activeOffer.headhunterAgency})
+                </span>
+              </div>
+
+              <h4 style="color: #f8fafc; font-size: 17px; font-weight: 900; margin: 4px 0 8px 0;">
+                ${activeOffer.rivalBankName}
+              </h4>
+              <p style="font-size: 13px; color: #e2e8f0; line-height: 1.5; margin-bottom: 12px;">
+                "${activeOffer.pitchDialogue}"
+              </p>
+
+              <!-- Offer Package Grid -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; background: rgba(15, 23, 42, 0.7); border-radius: 10px; padding: 10px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 14px;">
+                <div style="font-size: 12px;">
+                  <span style="color: #94a3b8;">الراتب المعروض:</span>
+                  <strong style="color: #34d399; font-size: 14px; display: block;">${activeOffer.offeredSalary.toLocaleString('ar-EG')} ج.م (+${activeOffer.salaryIncreasePercent}%)</strong>
+                </div>
+                <div style="font-size: 12px;">
+                  <span style="color: #94a3b8;">مكافأة توقيع العقد:</span>
+                  <strong style="color: #fbbf24; font-size: 14px; display: block;">${activeOffer.signingBonus.toLocaleString('ar-EG')} ج.م كاش</strong>
+                </div>
+                <div style="font-size: 12px;">
+                  <span style="color: #94a3b8;">المزايا العينية:</span>
+                  <strong style="color: #c084fc; font-size: 13px; display: block;">${activeOffer.carAllowance}</strong>
+                </div>
+              </div>
+
+              <!-- Headhunter Choices -->
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button class="btn btn-primary" id="btn-accept-headhunter" style="background: linear-gradient(135deg, #10b981, #059669); font-weight: 800; text-align: right; padding: 10px 14px;">
+                  ✅ قبول العرض المصرفي والاستفادة من النقلة المهنية الفورية ومكافأة التوقيع
+                </button>
+                <button class="btn btn-warning" id="btn-negotiate-headhunter" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; font-weight: 800; text-align: right; padding: 10px 14px;">
+                  🤝 استخدام العرض للتفاوض مع مدير الفرع لزيادة الراتب الحالي بنسبة 25% مع إثبات ولائك
+                </button>
+                <button class="btn btn-secondary" id="btn-decline-headhunter" style="font-weight: 800; text-align: right; padding: 10px 14px;">
+                  ❌ رفض العرض والتمسك بالمسيرة الوطنية مع تعزيز النزاهة والولاء (+20 نزاهة)
+                </button>
+              </div>
+            </div>
+            ` : ''}
+
+            ${activeDilemma ? `
+            <!-- Workplace Dilemma Section -->
+            <div style="background: rgba(15, 23, 42, 0.95); border: 2px solid #0ea5e9; border-radius: 16px; padding: 18px;">
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <span style="font-size: 32px;">${activeDilemma.character.avatar}</span>
+                <div>
+                  <h4 style="margin: 0; color: #f8fafc; font-size: 16px; font-weight: 900;">${activeDilemma.title}</h4>
+                  <div style="font-size: 12px; color: #94a3b8;">${activeDilemma.character.name} (${activeDilemma.character.role})</div>
+                </div>
+              </div>
+
+              <div style="background: rgba(30, 41, 59, 0.7); border-radius: 12px; padding: 14px; color: #e2e8f0; font-size: 13px; line-height: 1.6; margin-bottom: 16px; border-right: 3px solid #0ea5e9;">
+                ${activeDilemma.desc}
+              </div>
+
+              <h5 style="color: #cbd5e1; font-size: 13px; margin: 0 0 10px 0; font-weight: 800;">🎯 ما هو قرارك وتصرفك المهني؟</h5>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                ${activeDilemma.options.map((opt, oIdx) => `
+                  <div class="dilemma-option-card cursor-pointer" data-dilemma-opt="${oIdx}" style="background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px 16px; transition: all 0.2s ease;">
+                    <strong style="color: #f8fafc; font-size: 13.5px; display: block; margin-bottom: 4px;">
+                      ${oIdx + 1}. ${opt.text}
+                    </strong>
+                    <div style="font-size: 11.5px; color: #94a3b8;">
+                      ${opt.outcomeDesc}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            ` : `
+            <div style="text-align: center; padding: 40px 20px; color: #94a3b8;">
+              <span style="font-size: 40px; display: block; margin-bottom: 10px;">✨</span>
+              <h4 style="color: #f8fafc; margin: 0 0 6px 0;">لا توجد معضلات عمل معلقة في الوقت الراهن!</h4>
+              <p style="font-size: 13px; margin: 0;">أنجز مزيداً من المعاملات خلف شباك الصراف أو افتح الترقية القادمة لمواجهة تحديات جديدة.</p>
+            </div>
+            `}
+          </div>
+
+          <div class="modal-footer mt-4">
+            <button id="close-dilemmas-modal-btn" class="btn btn-secondary w-full">إغلاق ✕</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Bind Headhunter Handlers
+    if (activeOffer) {
+      document.getElementById('btn-accept-headhunter')?.addEventListener('click', () => {
+        cm.personalWealth += activeOffer.signingBonus;
+        cm.socialPrestige += 15;
+        cm.marketReputation += 20;
+        cm.saveCareer();
+        if (this.audio) this.audio.playSuccess();
+        this.closeModal();
+        this.showToast(`🎉 قبلت عرض ${activeOffer.rivalBankName}! حصلت على ${activeOffer.signingBonus.toLocaleString('ar-EG')} ج.م مكافأة توقيع وزادت سمعتك السوقية!`, 'success', 6000);
+        this.renderCareerFloorView();
+        this.initOrResumeBankFloor();
+      });
+
+      document.getElementById('btn-negotiate-headhunter')?.addEventListener('click', () => {
+        const curStage = cm.getCurrentStage();
+        curStage.baseSalary = Math.round(curStage.baseSalary * 1.25);
+        cm.socialPrestige += 10;
+        cm.stress = Math.max(0, cm.stress - 10);
+        cm.saveCareer();
+        if (this.audio) this.audio.playSuccess();
+        this.closeModal();
+        this.showToast(`🤝 نجحت في التفاوض مع مدير الفرع! تم رفع راتبك الحالي إلى ${curStage.baseSalary.toLocaleString('ar-EG')} ج.م تقديراً لكفاءتك وولائك!`, 'success', 6000);
+        this.renderCareerFloorView();
+        this.initOrResumeBankFloor();
+      });
+
+      document.getElementById('btn-decline-headhunter')?.addEventListener('click', () => {
+        cm.integrity = Math.min(100, cm.integrity + 20);
+        cm.socialPrestige += 8;
+        cm.saveCareer();
+        if (this.audio) this.audio.playClick();
+        this.closeModal();
+        this.showToast(`🛡️ رفضت العرض مفضلاً بناء تاريخك الوطني في البنك! ارتفعت نزاهتك وأمانتك إلى ${cm.integrity}%!`, 'info', 5000);
+        this.renderCareerFloorView();
+        this.initOrResumeBankFloor();
+      });
+    }
+
+    // Bind Dilemma Options
+    modalContainer.querySelectorAll('[data-dilemma-opt]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const optIdx = parseInt(e.currentTarget.dataset.dilemmaOpt, 10);
+        const chosen = activeDilemma.options[optIdx];
+        if (!chosen) return;
+
+        // Apply effects
+        const ef = chosen.effects || {};
+        if (ef.skill) cm.skill = Math.min(100, Math.max(0, cm.skill + ef.skill));
+        if (ef.integrity) cm.integrity = Math.min(100, Math.max(0, cm.integrity + ef.integrity));
+        if (ef.stress) cm.stress = Math.min(100, Math.max(0, cm.stress + ef.stress));
+        if (ef.energy) cm.energy = Math.min(100, Math.max(0, cm.energy + ef.energy));
+        if (ef.prestige) cm.socialPrestige = Math.min(100, Math.max(0, cm.socialPrestige + ef.prestige));
+        if (ef.marketReputation) cm.marketReputation = Math.min(100, Math.max(0, cm.marketReputation + ef.marketReputation));
+        if (ef.personalWealth) cm.personalWealth = Math.max(0, cm.personalWealth + ef.personalWealth);
+        if (ef.performance) cm.stageMetrics.performanceRating = Math.min(100, Math.max(20, cm.stageMetrics.performanceRating + ef.performance));
+        if (ef.colleagueAffinity && typeof cm.updateRelationship === 'function') {
+          Object.entries(ef.colleagueAffinity).forEach(([cId, dVal]) => {
+            cm.updateRelationship(cId, dVal);
+          });
+        }
+
+        cm.saveCareer();
+        if (this.audio) this.audio.playClick();
+        this.closeModal();
+        this.showToast(`نتيجة القرار: ${chosen.outcomeDesc}`, 'info', 7000);
+        this.renderCareerFloorView();
+        this.initOrResumeBankFloor();
+      });
+    });
+
+    document.getElementById('close-dilemmas-modal-btn')?.addEventListener('click', () => this.closeModal());
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) this.closeModal();
       });
     }
   }
@@ -3651,6 +4348,30 @@ export class UIManager {
             <div>
               <div style="font-size: 11px; color: #94a3b8;">ملف الموظف</div>
               <strong style="color: #fbbf24; font-size: 13.5px;" id="hud-career-char-name">${cm.name} 💼</strong>
+            </div>
+          </div>
+
+          <div class="floor-hud-card cursor-pointer" id="btn-open-career-ladder" title="سلم الترقيات الـ 7">
+            <span style="font-size: 20px;">📈</span>
+            <div>
+              <div style="font-size: 11px; color: #94a3b8;">سلم الترقيات</div>
+              <strong style="color: #f59e0b; font-size: 13.5px;">المستوى ${(cm.currentStageIndex || 0) + 1}/7 🎖️</strong>
+            </div>
+          </div>
+
+          <div class="floor-hud-card cursor-pointer" id="btn-open-lifestyle-store" title="متجر الرفاهية والسيارات والعقارات">
+            <span style="font-size: 20px;">🛍️</span>
+            <div>
+              <div style="font-size: 11px; color: #94a3b8;">متجر الرفاهية</div>
+              <strong style="color: #c084fc; font-size: 13.5px;">السيارات والبدل 🚗</strong>
+            </div>
+          </div>
+
+          <div class="floor-hud-card cursor-pointer" id="btn-open-workplace-dilemmas" title="معضلات العمل وعروض الاستقطاب">
+            <span style="font-size: 20px;">⚖️</span>
+            <div>
+              <div style="font-size: 11px; color: #94a3b8;">معضلات واستقطاب</div>
+              <strong style="color: #38bdf8; font-size: 13.5px;">قرارات حاسمة 🌐</strong>
             </div>
           </div>
           ` : ''}

@@ -16,7 +16,7 @@ import { NewsManager } from './models/NewsManager.js';
 import { FXManager } from './models/FXManager.js';
 import { LegalManager } from './models/LegalManager.js';
 import { TrophiesManager } from './models/TrophiesManager.js';
-import { CareerManager } from './models/CareerManager.js';
+import { CareerProgressionManager } from './models/CareerProgressionManager.js';
 import { BankRunManager } from './models/BankRunManager.js';
 import { NeoBankManager } from './models/NeoBankManager.js';
 import { VendorsManager } from './models/VendorsManager.js';
@@ -46,7 +46,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const fxManager = new FXManager(gameState);
   const legalManager = new LegalManager(gameState);
   const trophiesManager = new TrophiesManager(gameState);
-  const careerManager = new CareerManager(gameState);
+  const careerManager = new CareerProgressionManager(gameState);
   const bankRunManager = new BankRunManager(gameState);
   const neoBankManager = new NeoBankManager(gameState);
   const vendorsManager = new VendorsManager(gameState);
@@ -71,6 +71,7 @@ window.addEventListener('DOMContentLoaded', () => {
   gameState.legalManager = legalManager;
   gameState.trophiesManager = trophiesManager;
   gameState.careerManager = careerManager;
+  gameState.careerProgression = careerManager;
   gameState.bankRunManager = bankRunManager;
   gameState.neoBankManager = neoBankManager;
   gameState.vendorsManager = vendorsManager;
