@@ -45,6 +45,9 @@ export class CinematicDialogueSystem {
     this.closeDialogueUI();
 
     const data = this.getNPCDialogueData(npc.id);
+    const relStatus = (this.careerManager && typeof this.careerManager.getRelationshipStatus === 'function')
+      ? this.careerManager.getRelationshipStatus(npc.id)
+      : null;
 
     const overlay = document.createElement('div');
     overlay.id = 'cinematic-dialogue-overlay';
@@ -60,7 +63,7 @@ export class CinematicDialogueSystem {
     `;
 
     overlay.innerHTML = `
-      <div style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 820px; background: rgba(15, 23, 42, 0.96); border: 2px solid #38bdf8; border-radius: 20px; padding: 24px 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); pointer-events: auto;">
+      <div style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 840px; background: rgba(15, 23, 42, 0.96); border: 2px solid #38bdf8; border-radius: 20px; padding: 24px 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); pointer-events: auto;">
         <!-- Header: Speaker Name & Role -->
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid rgba(56, 189, 248, 0.3); padding-bottom: 12px; margin-bottom: 14px;">
           <div style="display: flex; align-items: center; gap: 12px;">
@@ -70,7 +73,14 @@ export class CinematicDialogueSystem {
               <span style="color: #38bdf8; font-size: 12.5px; font-weight: 700;">${npc.role}</span>
             </div>
           </div>
-          <span style="background: rgba(56, 189, 248, 0.15); color: #7dd3fc; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 800;">حوار ميداني مباشر</span>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            ${relStatus ? `
+              <span style="background: rgba(15, 23, 42, 0.85); border: 1.5px solid ${relStatus.color}; color: ${relStatus.color}; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 800;">
+                🤝 ${relStatus.label} (${relStatus.score}/100)
+              </span>
+            ` : ''}
+            <span style="background: rgba(56, 189, 248, 0.15); color: #7dd3fc; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 800;">حوار ميداني مباشر</span>
+          </div>
         </div>
 
         <!-- Dialogue Bubble -->
@@ -106,12 +116,12 @@ export class CinematicDialogueSystem {
       });
       btn.addEventListener('click', (e) => {
         const idx = parseInt(btn.dataset.choiceIndex, 10);
-        this.selectChoice(idx, data);
+        this.selectChoice(idx, data, npc);
       });
     });
   }
 
-  selectChoice(choiceIndex, data) {
+  selectChoice(choiceIndex, data, npc) {
     const choice = data.choices[choiceIndex];
     if (!choice) return;
 
@@ -130,8 +140,13 @@ export class CinematicDialogueSystem {
 
     if (choicesEl) {
       choicesEl.innerHTML = `
-        <div style="background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; border-radius: 10px; padding: 10px 16px; color: #86efac; font-size: 13px; font-weight: 800; margin-bottom: 12px;">
-          ✨ ${choice.effectNote || '+25 XP وتحديث علاقات الفرع'}
+        <div style="background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; border-radius: 10px; padding: 10px 16px; color: #86efac; font-size: 13px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+          <span>✨ ${choice.effectNote || 'تحديث مؤشرات المسيرة'}</span>
+          ${choice.relationshipDelta ? `
+            <span style="color: ${choice.relationshipDelta > 0 ? '#4ade80' : '#f87171'}; font-weight: 900;">
+              ${choice.relationshipDelta > 0 ? '💚 +' : '💔 '}${choice.relationshipDelta} رصيد العلاقة
+            </span>
+          ` : ''}
         </div>
         <button id="btn-dialogue-continue" style="background: #38bdf8; border: none; color: #0f172a; padding: 10px 24px; border-radius: 10px; font-weight: 900; font-size: 14.5px; cursor: pointer; align-self: flex-start;">
           متابعة المهام ⏩
@@ -145,10 +160,17 @@ export class CinematicDialogueSystem {
 
     // Apply career manager consequences
     if (this.careerManager) {
-      if (choice.xp) this.careerManager.addXP(choice.xp, choice.text);
-      if (choice.managementStanding && this.careerManager.standing) {
-        this.careerManager.standing.farouk = Math.min(100, Math.max(0, this.careerManager.standing.farouk + choice.managementStanding));
+      if (choice.relationshipDelta && npc) {
+        this.careerManager.updateRelationship(npc.id, choice.relationshipDelta);
       }
+      if (choice.statChanges) {
+        if (choice.statChanges.skill) this.careerManager.skill = Math.min(100, Math.max(0, this.careerManager.skill + choice.statChanges.skill));
+        if (choice.statChanges.integrity) this.careerManager.integrity = Math.min(100, Math.max(0, this.careerManager.integrity + choice.statChanges.integrity));
+        if (choice.statChanges.networking) this.careerManager.networking = Math.min(100, Math.max(0, this.careerManager.networking + choice.statChanges.networking));
+        if (choice.statChanges.wealth) this.careerManager.wealth = Math.max(0, this.careerManager.wealth + choice.statChanges.wealth);
+        if (choice.statChanges.energy) this.careerManager.energy = Math.min(100, Math.max(0, this.careerManager.energy + choice.statChanges.energy));
+      }
+      this.careerManager.saveCareer();
     }
   }
 
@@ -177,82 +199,186 @@ export class CinematicDialogueSystem {
     switch (npcId) {
       case 'farouk':
         return {
-          speech: 'أهلاً بك في أول أيامك بفرع البنك.. الانضباط هنا هو خط أحمر، كل قرش يدخل أو يخرج مسؤوليتك. شباك الصراف رقم #1 جاهز لاستقبالك، أريد أن أرى سرعة ودقة في آن واحد.',
+          speech: 'أهلاً بك في فرع البنك.. الانضباط هنا هو خط أحمر، كل قرش يدخل أو يخرج مسؤوليتك الشخصية. أريد أن أرى سرعة ودقة متناهية وإغلاقاً متطابقاً دون مليم عجز.',
           choices: [
             {
-              text: 'تحت أمرك يا فندم، الانضباط والدقة هما أساس العمل المصرفي.',
+              text: 'تحت أمرك يا فندم، الانضباط والدقة هما أساس العمل المصرفي وسمعة الفرع.',
               tag: 'مهني ومطيع (Professional)',
               tagColor: '#34d399',
               reaction: 'عظيم! هذه هي الروح التي نحتاجها.. استلم بطاقة الصلاحيات وتوجه لشباكك فوراً.',
-              effectNote: 'نال استحسان المدير (+15 رضا إدارة)',
-              managementStanding: 15,
-              xp: 30,
-              nextObjective: 'توجه لشباك الصراف رقم #1 واجلس للعمل [E]'
+              effectNote: 'نال استحسان المدير فاروق (+15 علاقة، +5 نزاهة)',
+              relationshipDelta: 15,
+              statChanges: { integrity: 5, skill: 5 },
+              nextObjective: 'توجه لشباك الصراف واجلس للعمل [E]'
             },
             {
-              text: 'هدفي ليس مجرد إنجاز المهام، بل تحقيق أعلى أرقام تارجت بالفرع.',
+              text: 'هدفي ليس مجرد إنجاز المهام الروتينية، بل قيادة الفرع لتحقيق أعلى أرقام تارجت وإيداعات.',
               tag: 'طموح وشديد التنافس (Ambitious)',
               tagColor: '#fbbf24',
               reaction: 'يعجبني طموحك.. لكن انتبه، الطموح بدون التزام بلوائح البنك المركزي قد ينهي مسيرتك مبكراً.',
-              effectNote: 'لفت انتباه المدير لطموحك (+25 XP)',
-              managementStanding: 5,
-              xp: 45,
-              nextObjective: 'توجه لشباك الصراف رقم #1 واجلس للعمل [E]'
+              effectNote: 'لفت انتباه المدير لطموحك (+5 علاقة، +10 كفاءة)',
+              relationshipDelta: 5,
+              statChanges: { skill: 10, networking: 5 },
+              nextObjective: 'توجه لشباك الصراف واجلس للعمل [E]'
             }
           ]
         };
 
       case 'sara':
         return {
-          speech: 'شايفاك بتتحرك بثقة يا زميلي الجديد.. متفتكرش إن التارجت هنا بالساهل، أنا محققة 140% الشهر اللي فات وعيني على ترقية رئيس قسم الائتمان!',
+          speech: 'شايفاك بتتحرك بثقة يا زميلي.. متفتكرش إن التارجت هنا بالساهل! أنا محققة 140% الشهر اللي فات وعيني على إدارة التجزئة الإقليمية، فهل ناوي تنافس ولا نتحالف؟',
           choices: [
             {
-              text: 'المنافسة الشريفة ترفع من شأن الفرع كله، وبالتوفيق لكِ.',
-              tag: 'دبلوماسي هادئ (Diplomatic)',
+              text: 'إيه رأيك نتحالف؟ عملاء الشهادات الكبيرة لكِ، وأنا أركز في فتح الاعتمادات والتسهيلات لتقفيل تارجت الفرع.',
+              tag: 'تحالف مبيعات استراتيجي (Alliance)',
               tagColor: '#38bdf8',
-              reaction: 'كلام لطيف.. خلينا نشوف شغلك العملي على الشباك النهاردة.',
-              effectNote: 'علاقة مستقرة مع الزميلة سارة (+20 XP)',
-              xp: 20
+              reaction: 'ذكاء استراتيجي يعجبني! كده هنقفل تارجت الفرع سوا وناخد بونص الربع سنوي كامل!',
+              effectNote: 'تحالف تجزئة متين مع سارة (+15 علاقة، +10 علاقات عامة)',
+              relationshipDelta: 15,
+              statChanges: { networking: 10, skill: 5 }
             },
             {
-              text: 'مستعد للتحدي، والشهر ده الصدارة هتتغير بإذن الله.',
-              tag: 'تحدي مباشر (Rivalry)',
+              text: 'المنافسة الشريفة هي اللي بتظهر الكفاءة الحقيقية، والسباق مفتوح لنهاية الشهر!',
+              tag: 'تحدي وسباق أرقام (Rivalry)',
               tagColor: '#f87171',
-              reaction: 'ههه.. عجبتني الجرأة! نشوف مين هيقفل تارجته الأول.',
-              effectNote: 'اشتعال المنافسة المهنية (+30 XP)',
-              xp: 30
+              reaction: 'ههه.. أحب المنافسين الشجعان! خلينا نشوف أرقامك آخر الشهر على لوحة الإعلانات.',
+              effectNote: 'إشعال روح المنافسة المهنية (+5 علاقة، +10 كفاءة)',
+              relationshipDelta: 5,
+              statChanges: { skill: 10 }
             }
           ]
         };
 
       case 'mahmoud':
         return {
-          speech: 'تعال اشرب شاي جنب مبرد المياه وسيبك من الجد شوية! سمعت آخر إشاعة؟ المفتش حازم احتمال يطب علينا فجأة بكرة الصبح يفتش على دفاتر الخزينة!',
+          speech: 'تعال اشرب كباية شاي بنعناع وسيبك من التنشنة شوية! سمعت آخر حوار في الكافتيريا؟ بيقولوا فيه تفتيش مفاجئ من الرقابة، والمدير قالق من مطابقة الخزينة!',
           choices: [
             {
-              text: 'تسلم يا محمود على التنبيه.. لازم أراجع مطابقة الدرج بدقة النهاردة.',
-              tag: 'استغلال ذكي للمعلومة (Shrewd)',
+              text: 'تسلم يا حودة على المعلومة.. هراجع مطابقة الخزينة دلوقتي وأساعدك في رزم الألفيات كمان.',
+              tag: 'جدعنة زملاء الشباك (Loyalty)',
               tagColor: '#a78bfa',
-              reaction: 'عفواً يا صاحبي.. اللي يعيش في البنك ده من غير ودان يروح في داهية!',
-              effectNote: 'كسب معلومة استباقية هامة لليوم التالي (+25 XP)',
-              xp: 25
+              reaction: 'هو ده الجدعنة وأولاد الأصول! كده نخلص 3 عصراً ونروح نتغدى عند التابعي على حسابي.',
+              effectNote: 'صداقة وطيدة مع محمود (+20 علاقة، +10 طاقة)',
+              relationshipDelta: 20,
+              statChanges: { energy: 10, networking: 5 }
             },
             {
-              text: 'بلاش شائعات يا محمود وخلينا نركز في شغلنا قبل ما المدير يلمحنا.',
-              tag: 'حذر ورسمي (Cautious)',
+              text: 'بلاش كلام كتير في الصالة يا محمود عشان المدير فاروق باصص علينا وممكن يخصم لنا!',
+              tag: 'حذر ورسمي متشدد (Strict)',
               tagColor: '#94a3b8',
-              reaction: 'يا عم براحتك.. بس افتكر إني حذرتك لما تشوف كارنيه التفتيش!',
-              effectNote: 'تجنب القيل والقال (+15 XP)',
-              xp: 15
+              reaction: 'يا ساتر عليك وعلى وسواسك! بس معاك حق، عينه زي الصقر اليومين دول.',
+              effectNote: 'انضباط حذر (-5 علاقة مع محمود، +5 نزاهة)',
+              relationshipDelta: -5,
+              statChanges: { integrity: 5 }
+            }
+          ]
+        };
+
+      case 'fatma':
+        return {
+          speech: 'يا بني ربنا يسترك ويجبر بخاطرك دنيا وآخرة.. ابني محول لي حوالة ومحتارة بين تجديد شهادة المعاش أو شراء سبيكة دهب صغيرة.. تنصحني بإيه بأمانة الله؟',
+          choices: [
+            {
+              text: 'يا حاجة فاطمة شهادتك البنكية مدياكي عائد شهري مضمون يضمن مصاريفك، بلاش تجري ورا المضاربات غير المضمونة.',
+              tag: 'نصيحة مخلصة للمودعين (Fiduciary Duty)',
+              tagColor: '#10b981',
+              reaction: 'ربنا يبارك في شبابك وصحتك ويرزقك من أوسع الأبواب.. دعوة من القلب في كل ركعة صلاة!',
+              effectNote: 'بركة دعاء الوالدين ورضا العملاء (+25 علاقة، +15 نزاهة)',
+              relationshipDelta: 25,
+              statChanges: { integrity: 15, energy: 10 }
+            },
+            {
+              text: 'نقدر نجدد نص المبلغ في شهادة ادخار عالية الفائدة، والنص الثاني في صندوق استثمار دهبي آمن متوافق مع الشريعة.',
+              tag: 'تنويع استثماري حكيم (Financial Planning)',
+              tagColor: '#f59e0b',
+              reaction: 'ما شاء الله على علمك وفهمك! كده مسكنا العصاية من النص وحفظنا القرش من الغلاء.',
+              effectNote: 'تخطيط استثماري عبقري (+15 علاقة، +10 كفاءة)',
+              relationshipDelta: 15,
+              statChanges: { skill: 10, networking: 5 }
+            }
+          ]
+        };
+
+      case 'hazem':
+        return {
+          speech: 'معاك المفتش حازم سليم من الإدارة المركزية للرقابة الميدانية بالبنك المركزي (CBE).. الفرع ده تحت الفحص اليوم لمراجعة معايير بازل 3 ومكافحة غسيل الأموال.',
+          choices: [
+            {
+              text: 'أهلاً بحضرتك يا فندم.. كافة سجلات الـ KYC ومطابقات الخزينة اليومية وحسابات كبار المودعين جاهزة ومطابقة بالمليم.',
+              tag: 'امتثال رقابي حديدي (Strict Compliance)',
+              tagColor: '#3b82f6',
+              reaction: 'ممتاز جداً.. ندرة أن أجد مصرفياً بهذا الانضباط والوعي الرقابي الصارم. تقريري للبنك المركزي سيشيد بأدائك الاستثنائي.',
+              effectNote: 'إشادة رسمية في تقرير CBE (+25 علاقة، +15 نزاهة، +10 كفاءة)',
+              relationshipDelta: 25,
+              statChanges: { integrity: 15, skill: 10 }
+            },
+            {
+              text: 'الرقابة هي خط الدفاع الأول عن اقتصاد الوطن.. تفضل بمراجعة الدفاتر وسأكون تحت تصرفك لأي استفسار.',
+              tag: 'تعاون مهني وثقة (Professional Cooperation)',
+              tagColor: '#6366f1',
+              reaction: 'هذا هو الفكر المؤسسي المحترم الذي يحتاجه الجهاز المصرفي المصري للمستقبل.',
+              effectNote: 'بناء جسر ثقة رفيع مع كبير المفتشين (+15 علاقة، +10 علاقات)',
+              relationshipDelta: 15,
+              statChanges: { networking: 10, integrity: 5 }
+            }
+          ]
+        };
+
+      case 'ashour':
+        return {
+          speech: 'يا باشمهندس.. أنا الحاج عاشور، داخل في مناقصة مصانع جديدة في أكتوبر ومحتاج تسهيلات وخطابات ضمان بـ 150 مليون جنيه قبل الخميس.. وأتعابك الشخصية محفوظة ومجزية!',
+          choices: [
+            {
+              text: 'يا حاج عاشور، تمويل المشروعات الكبرى يحتاج تدفقات نقدية مدروسة وضمانات عينية تحفظ حقك وحق البنك، وبدون أي مقابل شخصي لأننا نعمل وفق الأصول.',
+              tag: 'نزاهة مصرفية صارمة (Uncompromising Integrity)',
+              tagColor: '#10b981',
+              reaction: 'يا سلام عليك! أنا كنت بختبرك وعرفت إنك راجل نضيف متتباعش.. والأصول والميزانيات كلها جاهزة ومسجلة رسمي!',
+              effectNote: 'احترام هائل وثقة عمياء من حوت المقاولات (+20 علاقة، +15 نزاهة، +10 كفاءة)',
+              relationshipDelta: 20,
+              statChanges: { integrity: 15, skill: 10 }
+            },
+            {
+              text: 'مجموعة عاشور اسم عملاق بالسوق.. سأدرس الملف بنفسي ليل نهار وأرفع توصية للجنة الائتمان العليا لتسريع الموافقة.',
+              tag: 'سرعة وديناميكية صفقات (Deal Acceleration)',
+              tagColor: '#eab308',
+              reaction: 'عفارم عليك يا ابن الأصول! الشغل السريع مع الكبار هو اللي يدور عجلة الإنتاج ويفتح بيوت!',
+              effectNote: 'صفقة ائتمانية تاريخية (+15 علاقة، +15 علاقات عامة، +5,000 ج.م)',
+              relationshipDelta: 15,
+              statChanges: { networking: 15, wealth: 5000 }
+            }
+          ]
+        };
+
+      case 'maged':
+        return {
+          speech: 'مساء الخير يا زميلي.. أنا ماجد الشناوي (Headhunter). مراقب مسيرتك وقدرتك على إدارة الأزمات والائتمان.. لدي تفويض من بنك استثماري خليجي براتب 12,000 دولار وبونص ضخم!',
+          choices: [
+            {
+              text: 'العرض مغرٍ واستثنائي، لكن طموحي التاريخي هو تأسيس وبناء صرح مصرفي وطني مستقل يخدم الاقتصاد المصري ويحمل اسمي.',
+              tag: 'رؤية قيادية وتأسيس وطني (Visionary Founder)',
+              tagColor: '#ec4899',
+              reaction: 'رؤية قائد حقيقي! المستثمرون الذين أمثلهم مستعدون أيضاً لضخ ملايين كحصة تأسيسية معك إن قررت إطلاق بنكك الخاص.',
+              effectNote: 'تأمين حليف استثماري دولي استراتيجي (+25 علاقة، +15 علاقات، +10 نزاهة)',
+              relationshipDelta: 25,
+              statChanges: { networking: 15, integrity: 10 }
+            },
+            {
+              text: 'أنا منفتح لدراسة العرض والتعرف على صلاحيات قيادة الصناديق الاستثمارية في دبي وأبوظبي.',
+              tag: 'انفتاح على الأسواق العالمية (Global Banking)',
+              tagColor: '#06b6d4',
+              reaction: 'اختيار ذكي.. العقول المصرفية التي تفهم لغة الأسواق الدولية هي الأقدر على صنع الفارق المالي.',
+              effectNote: 'فتح قنوات مالية دولية (+15 علاقة، +10 علاقات، +10,000 ج.م)',
+              relationshipDelta: 15,
+              statChanges: { networking: 10, wealth: 10000 }
             }
           ]
         };
 
       default:
         return {
-          speech: 'مرحباً بك في فرع البنك.',
+          speech: 'مرحباً بك في فرع البنك.. نتمنى لك دوام التوفيق والنجاح في مسيرتك المهنية.',
           choices: [
-            { text: 'شكراً جزيلاً.', tag: 'إنهاء', reaction: 'بالتوفيق.', xp: 10 }
+            { text: 'شكراً جزيلاً، وبالتوفيق للجميع.', tag: 'إنهاء', reaction: 'بالتوفيق دائماً.', xp: 10 }
           ]
         };
     }

@@ -23,7 +23,7 @@ export class CareerManager {
     this.wealth = 4500;    // الرصيد الشخصي والمدخرات بالجنيه المصري
     this.energy = 85;      // الطاقة والصحة النفسية وتفادي الاحتراق
 
-    // Career Stages: 0: Teller, 1: Customer Service, 2: Credit Analyst, 3: Crossroads
+    // Career Stages: 0: Teller, 1: Customer Service, 2: Credit Analyst, 3: Operations Manager, 4: Crossroads
     this.currentStageIndex = 0;
     this.currentEventIndex = 0;
 
@@ -35,6 +35,17 @@ export class CareerManager {
 
     // History of key decisions
     this.decisionHistory = [];
+
+    // Character Relationship Affinity Meters (0 - 100)
+    this.relationships = {
+      farouk: 50,  // الأستاذ فاروق مدير الفرع
+      fatma: 50,   // الحاجة فاطمة عميلة المعاشات
+      hazem: 50,   // المفتش حازم سليم (CBE)
+      ashour: 50,  // الحاج عاشور المقاول
+      sara: 50,    // سارة المهدي وحش التارجت
+      maged: 50,   // ماجد الشناوي صائد الكفاءات
+      mahmoud: 50  // محمود زميل الشباك
+    };
 
     // Career Stages Configuration with Dual-Gender Phrasing
     this.stages = [
@@ -79,6 +90,20 @@ export class CareerManager {
           f: 'مطبخ صناعة الملايين: فحص ميزانيات المصانع، كشف التلاعب المالي، والتعامل المباشر مع كبار المستثمرين.'
         },
         targetPromoteSkill: 90
+      },
+      {
+        id: 'operations_manager',
+        title: {
+          m: 'مدير العمليات ونائب مدير الفرع (Branch Operations Manager)',
+          f: 'مديرة العمليات ونائبة مدير الفرع (Branch Operations Manager)'
+        },
+        department: 'إدارة تشغيل الفرع ومطابقة الخزائن المركزية',
+        baseSalary: 38000,
+        desc: {
+          m: 'الرجل الثاني في الفرع: إدارة أزمات السيولة، التفتيش المفاجئ على الخزائن، والتعامل مع طوارئ العمليات والأمن السيبراني.',
+          f: 'السيدة الثانية في الفرع: إدارة أزمات السيولة، التفتيش المفاجئ على الخزائن، والتعامل مع طوارئ العمليات والأمن السيبراني.'
+        },
+        targetPromoteSkill: 95
       },
       {
         id: 'crossroads',
@@ -714,9 +739,190 @@ export class CareerManager {
               }
             }
           ]
+        }
+      ],
+
+      operations_manager: [
+        {
+          id: 'op1_float_crisis',
+          speakerId: 'farouk',
+          speakerName: 'الأستاذ فاروق',
+          speakerRole: 'مدير فرع المهندسين',
+          speakerAvatar: './assets/characters/farouk.jpg',
+          initialExpression: 'stressed',
+          emotionIcon: '💥',
+          introDialogue: {
+            m: 'المركزي أعلن تعويم الجنيه ورفع الفائدة 600 نقطة أساس! الصالة برة بتغلي وطوابير بالمئات عايزين يكسروا شهاداتهم القديمة ويربطوا شهادات الـ 27%، وفيه تجار بيطالبوا بسيولة دولارية فورية.. بصفتك نائب مدير الفرع، خطتك إيه للسيطرة على الأزمة ومنع التدافع؟! 💥',
+            f: 'المركزي أعلن تعويم الجنيه ورفع الفائدة 600 نقطة أساس! الصالة برة بتغلي وطوابير بالمئات عايزين يكسروا شهاداتهم القديمة ويربطوا شهادات الـ 27%، وفيه تجار بيطالبوا بسيولة دولارية فورية.. بصفتكِ نائبة مدير الفرع، خطتك إيه للسيطرة على الأزمة ومنع التدافع؟! 💥'
+          },
+          options: [
+            {
+              toneBadge: 'تنظيم رقمي واستيعاب الأزمة بذكاء',
+              toneType: 'smart',
+              text: {
+                m: 'فتح شبابيك طوارئ إضافية، وتوجيه العملاء للتطبيق وإنستاباي لربط الشهادات رقمياً دون الوقوف في الطوابير.',
+                f: 'فتح شبابيك طوارئ إضافية، وتوجيه العملاء للتطبيق وإنستاباي لربط الشهادات رقمياً دون الوقوف في الطوابير.'
+              },
+              playerSay: {
+                m: 'يا فندم نفتح شبابيك طوارئ إضافية فوراً، ونوزع أرقام استراحة، وننزل بنفسنا للصالة نوجه العملاء لربط الشهادات عبر الموبايل بنكي وإنستاباي في ثوانٍ دون انتظار في الطوابير!',
+                f: 'يا فندم نفتح شبابيك طوارئ إضافية فوراً، ونوزع أرقام استراحة، وننزل بنفسنا للصالة نوجه العملاء لربط الشهادات عبر الموبايل بنكي وإنستاباي في ثوانٍ دون انتظار في الطوابير!'
+              },
+              playerExpression: 'confident',
+              retortDialogue: {
+                m: 'الله ينور عليك! إدارة حكيمة استوعبت الهلع وضاعفت حصيلة الودائع بـ 40 مليون في يوم واحد بدون شوشرة! 👏',
+                f: 'الله ينور عليكي! إدارة حكيمة استوعبت الهلع وضاعفت حصيلة الودائع بـ 40 مليون في يوم واحد بدون شوشرة! 👏'
+              },
+              retortExpression: 'satisfied',
+              retortIcon: '👏',
+              statChanges: { skill: +30, networking: +25, energy: +10 },
+              relationshipsChange: { farouk: +25, hazem: +20 },
+              perkEarned: { id: 'crisis_commander', title: 'قائد أزمات التعويم', icon: '⚡', desc: 'قدرة استثنائية على امتصاص الصدمات المالية والحفاظ على استقرار السيولة.' },
+              resultText: {
+                m: 'أدرت أزمة التعويم بعبقرية، وضاعف الفرع ودائعه وأشاد البنك المركزي بقدرة الفرع على التحول الرقمي الفوري!',
+                f: 'أدرتِ أزمة التعويم بعبقرية، وضاعف الفرع ودائعه وأشاد البنك المركزي بقدرة الفرع على التحول الرقمي الفوري!'
+              }
+            },
+            {
+              toneBadge: 'أولوية لكبار المودعين والشركات',
+              toneType: 'corrupt',
+              text: {
+                m: 'تخصيص السيولة الدولارية لصالح كبار المستوردين والشركات التابعة للحاج عاشور لضمان مصالحهم وتلقي عمولة كبرى.',
+                f: 'تخصيص السيولة الدولارية لصالح كبار المستوردين والشركات التابعة للحاج عاشور لضمان مصالحهم وتلقي عمولة كبرى.'
+              },
+              playerSay: {
+                m: 'نوجه الحصة الكبرى من النقد الأجنبي لمصانع الحاج عاشور وكبار العملاء عشان خطوط إنتاجهم متقفش، والجمهور العادي نصرف له بحدود قصوى.',
+                f: 'نوجه الحصة الكبرى من النقد الأجنبي لمصانع الحاج عاشور وكبار العملاء عشان خطوط إنتاجهم متقفش، والجمهور العادي نصرف له بحدود قصوى.'
+              },
+              playerExpression: 'scheming',
+              retortDialogue: {
+                m: 'عاشور هيشيلك فوق راسه بعد الحركة دي.. بس خلي بالك شكاوى الجمهور ممكن توصل للمحافظ! 🤫',
+                f: 'عاشور هيشيلك فوق راسه بعد الحركة دي.. بس خلي بالك شكاوى الجمهور ممكن توصل للمحافظ! 🤫'
+              },
+              retortExpression: 'scheming',
+              retortIcon: '🤫',
+              statChanges: { wealth: +50000, integrity: -25, networking: +30, energy: -15 },
+              relationshipsChange: { ashour: +35, farouk: +10, hazem: -20 },
+              perkEarned: { id: 'vip_favored', title: 'حليف حيتان الصناعة', icon: '🤝', desc: 'أولوية واستثمارات حصرية من كبار مستثمري مصر.' },
+              resultText: {
+                m: 'حصلت على مكافأة خاصة من كبار الموردين، لكن الرقابة سجلت ملاحظة بشأن عدم عدالة التوزيع.',
+                f: 'حصلتِ على مكافأة خاصة من كبار الموردين، لكن الرقابة سجلت ملاحظة بشأن عدم عدالة التوزيع.'
+              }
+            }
+          ]
         },
         {
-          id: 'ca3_the_crossroads_pitch',
+          id: 'op2_cyber_phishing_attack',
+          speakerId: 'hazem',
+          speakerName: 'المفتش حازم',
+          speakerRole: 'كبير مفتشي الرقابة والأمن السيبراني (CBE)',
+          speakerAvatar: './assets/characters/hazem.jpg',
+          initialExpression: 'investigating',
+          emotionIcon: '🚨',
+          introDialogue: {
+            m: 'رصدنا هجوماً سيبرانياً متقدماً يستهدف سحب بيانات أرصدة كبار العملاء عبر رابط تصيد ملغوم تم إدخاله في شبكة فرعكم! النظام المركزي في خطر.. قرارك الآن يحدد سلامة أموال الجهاز المصرفي! 🚨',
+            f: 'رصدنا هجوماً سيبرانياً متقدماً يستهدف سحب بيانات أرصدة كبار العملاء عبر رابط تصيد ملغوم تم إدخاله في شبكة فرعكم! النظام المركزي في خطر.. قراركِ الآن يحدد سلامة أموال الجهاز المصرفي! 🚨'
+          },
+          options: [
+            {
+              toneBadge: 'عزل فوري للشبكة وتطبيق بروتوكول الطوارئ',
+              toneType: 'strict',
+              text: {
+                m: 'عزل خوادم الفرع عن الشبكة المركزية فوراً، وتشغيل الجدار الناري الاحتياطي وإبلاغ وحدة مكافحة الجرائم الإلكترونية.',
+                f: 'عزل خوادم الفرع عن الشبكة المركزية فوراً، وتشغيل الجدار الناري الاحتياطي وإبلاغ وحدة مكافحة الجرائم الإلكترونية.'
+              },
+              playerSay: {
+                m: 'يا فندم افصلوا كابل الشبكة المركزي للفرع حالاً! نشغل النسخة الاحتياطية المعزولة (Air-gapped) ونبلغ إدارة الأمن السيبراني بالبنك المركزي فوراً لاتخاذ الإجراءات الجنائية!',
+                f: 'يا فندم افصلوا كابل الشبكة المركزي للفرع حالاً! نشغل النسخة الاحتياطية المعزولة (Air-gapped) ونبلغ إدارة الأمن السيبراني بالبنك المركزي فوراً لاتخاذ الإجراءات الجنائية!'
+              },
+              playerExpression: 'stern',
+              retortDialogue: {
+                m: 'قرار حاسم وسريع أنقذ أرصدة بالمليارات قبل اختراقها بثوانٍ معدودة! هذا هو الحس الأمني الذي نبحث عنه في قيادات المستقبل! 🛡️',
+                f: 'قرار حاسم وسريع أنقذ أرصدة بالمليارات قبل اختراقها بثوانٍ معدودة! هذا هو الحس الأمني الذي نبحث عنه في قيادات المستقبل! 🛡️'
+              },
+              retortExpression: 'approved',
+              retortIcon: '🛡️',
+              statChanges: { integrity: +35, skill: +30, energy: +10 },
+              relationshipsChange: { hazem: +40, farouk: +20 },
+              perkEarned: { id: 'cyber_shield', title: 'الدرع السيبراني الفولاذي', icon: '🛡️', desc: 'حماية مطلقة من أي تسريب أو ثغرة أمنية تواجه فروع بنكك.' },
+              resultText: {
+                m: 'تم إحباط الهجوم السيبراني وتوجيه برقية شكر رسمية لك من محافظ البنك المركزي المصري تقديراً لشجاعتك وحسمك!',
+                f: 'تم إحباط الهجوم السيبراني وتوجيه برقية شكر رسمية لكِ من محافظ البنك المركزي المصري تقديراً لشجاعتكِ وحسمكِ!'
+              }
+            },
+            {
+              toneBadge: 'معالجة صامتة وتفادي الفضيحة',
+              toneType: 'smart',
+              text: {
+                m: 'الاستعانة بفريق برمجي خارجي لإصلاح الثغرة بهدوء دون إبلاغ الرقابة لحماية سمعة الفرع من لفت النظر.',
+                f: 'الاستعانة بفريق برمجي خارجي لإصلاح الثغرة بهدوء دون إبلاغ الرقابة لحماية سمعة الفرع من لفت النظر.'
+              },
+              playerSay: {
+                m: 'نصلح الثغرة داخلياً مع مسؤولي الـ IT ونغير كلمات المرور في صمت، وبلاش نكبر الموضوع للبنك المركزي عشان سمعة الفرع والتقييم السنوي.',
+                f: 'نصلح الثغرة داخلياً مع مسؤولي الـ IT ونغير كلمات المرور في صمت، وبلاش نكبر الموضوع للبنك المركزي عشان سمعة الفرع والتقييم السنوي.'
+              },
+              playerExpression: 'reluctant',
+              retortDialogue: {
+                m: 'التستر على الثغرات الأمنية مخالفة جسيمة يا أستاذ! تم احتواء الموقف ولكن سيتم إدراج تقرير تحقيق رسمي بالواقعة! 😠',
+                f: 'التستر على الثغرات الأمنية مخالفة جسيمة يا أستاذة! تم احتواء الموقف ولكن سيتم إدراج تقرير تحقيق رسمي بالواقعة! 😠'
+              },
+              retortExpression: 'stern',
+              retortIcon: '😠',
+              statChanges: { integrity: -30, skill: -10, networking: +10, energy: -20 },
+              relationshipsChange: { hazem: -35, farouk: +15 },
+              perkEarned: null,
+              resultText: {
+                m: 'أغلقت الثغرة لكن التستر أغضب لجان التفتيش، واعتبر المفتش حازم تصرفك مجازفة غير محسوبة.',
+                f: 'أغلقتِ الثغرة لكن التستر أغضب لجان التفتيش، واعتبر المفتش حازم تصرفكِ مجازفة غير محسوبة.'
+              }
+            }
+          ]
+        },
+        {
+          id: 'op3_sovereign_green_deposit',
+          speakerId: 'maged',
+          speakerName: 'ماجد الشناوي',
+          speakerRole: 'مستقطب كفاءات دولي ومستشار صناديق الطاقة',
+          speakerAvatar: './assets/characters/maged.jpg',
+          initialExpression: 'wealthy',
+          emotionIcon: '🌿',
+          introDialogue: {
+            m: 'ألف مبروك على منصب نائب مدير الفرع! أنا جايبلك صفقة تاريخية: تحالف صناديق استثمار أوروبية للطاقة الخضراء عايز يودع 250 مليون دولار ويطلب تمويلاً مشتركاً لمصنع هيدروجين بالعين السخنة.. دي صفقة هتنقلك لرئاسة مجالس إدارات البنوك الاستثمارية فوراً! 🌿',
+            f: 'ألف مبروك على منصب نائبة مدير الفرع! أنا جايبلك صفقة تاريخية: تحالف صناديق استثمار أوروبية للطاقة الخضراء عايز يودع 250 مليون دولار ويطلب تمويلاً مشتركاً لمصنع هيدروجين بالعين السخنة.. دي صفقة هتنقلكِ لرئاسة مجالس إدارات البنوك الاستثمارية فوراً! 🌿'
+          },
+          options: [
+            {
+              toneBadge: 'هيكلة تحالف صكوك خضراء وطنية',
+              toneType: 'visionary',
+              text: {
+                m: 'صياغة هيكل تمويلي مبتكر عبر إصدار أول صكوك خضراء مشتركة مع كبار بنوك مصر لتقليل المخاطر.',
+                f: 'صياغة هيكل تمويلي مبتكر عبر إصدار أول صكوك خضراء مشتركة مع كبار بنوك مصر لتقليل المخاطر.'
+              },
+              playerSay: {
+                m: 'عرض استثنائي ومستعدون لقيادته! سنقوم بهيكلة تمويلية عبر إصدار صكوك خضراء سيادية بالتحالف مع أكبر بنوك مصر، بما يضمن تدفق السيولة ويحمي ملاءة البنك المالية بنسبة 150%!',
+                f: 'عرض استثنائي ومستعدون لقيادته! سنقوم بهيكلة تمويلية عبر إصدار صكوك خضراء سيادية بالتحالف مع أكبر بنوك مصر، بما يضمن تدفق السيولة ويحمي ملاءة البنك المالية بنسبة 150%!'
+              },
+              playerExpression: 'visionary',
+              retortDialogue: {
+                m: 'عبقرية مصرفية تتجاوز الحدود! هذا الترتيب الاستثماري أثبت أنك جاهز تماماً للجلوس على مقعد رئيس مجلس الإدارة والتحكم في مستقبل الاقتصاد! 👑',
+                f: 'عبقرية مصرفية تتجاوز الحدود! هذا الترتيب الاستثماري أثبت أنكِ جاهزة تماماً للجلوس على مقعد رئيسة مجلس الإدارة والتحكم في مستقبل الاقتصاد! 👑'
+              },
+              retortExpression: 'impressed',
+              retortIcon: '👑',
+              statChanges: { skill: +40, networking: +35, wealth: +75000, integrity: +25 },
+              relationshipsChange: { maged: +40, ashour: +30, hazem: +25 },
+              perkEarned: { id: 'green_financier', title: 'رائد التمويل الأخضر المستدام', icon: '🌿', desc: 'جذب تدفقات استثمارية بالعملة الصعبة تزيد من أرباح الخزينة بنسبة 25%.' },
+              resultText: {
+                m: 'أغلقت الصفقة بنجاح مذهل وأصبحت حديث مجتمع المال والأعمال في دبي ولندن والقاهرة، وتم ترشيحك رسمياً للقمة التاريخية!',
+                f: 'أغلقتِ الصفقة بنجاح مذهل وأصبحتِ حديث مجتمع المال والأعمال في دبي ولندن والقاهرة، وتم ترشيحكِ رسمياً للقمة التاريخية!'
+              }
+            }
+          ]
+        }
+      ],
+
+      crossroads: [
+        {
+          id: 'cr1_the_crossroads_pitch',
           speakerId: 'ashour',
           speakerName: 'الحاج عاشور ومجموعة المستثمرين الصناعيين',
           speakerRole: 'جلسة عشاء خاصة بنادي الجزيرة',
@@ -749,6 +955,7 @@ export class CareerManager {
               isFinalCrossroads: true,
               path: 'found_bank',
               statChanges: { networking: +50, wealth: +50000, skill: +30 },
+              relationshipsChange: { ashour: +40, maged: +30 },
               resultText: {
                 m: 'مبروك! بدأت الخطوة الأعظم في حياتك.. تأسيس صرحك المصرفي الخاص بالجنيه المصري برئاسة مجلس إدارتك وبدعم حلفائك المستثمرين!',
                 f: 'مبروك! بدأتِ الخطوة الأعظم في حياتكِ.. تأسيس صرحكِ المصرفي الخاص بالجنيه المصري برئاسة مجلس إدارتكِ وبدعم حلفائكِ المستثمرين!'
@@ -775,6 +982,7 @@ export class CareerManager {
               isFinalCrossroads: true,
               path: 'corporate_leader',
               statChanges: { skill: +40, wealth: +80000, integrity: +20 },
+              relationshipsChange: { farouk: +35, hazem: +30 },
               resultText: {
                 m: 'دخلت مكتب رئيس مجلس الإدارة وفرضت شروطك بقوة إنجازاتك، وحصلت على ترقية كبرى لرئاسة قطاع الاستثمار والائتمان بالكامل براتب 120,000 ج.م!',
                 f: 'دخلتِ مكتب رئيس مجلس الإدارة وفرضتِ شروطكِ بقوة إنجازاتكِ، وحصلتِ على ترقية كبرى لرئاسة قطاع الاستثمار والائتمان بالكامل براتب 120,000 ج.م!'
@@ -841,6 +1049,13 @@ export class CareerManager {
       this.acquiredPerks.push(opt.perkEarned);
     }
 
+    // Apply Character Relationship Changes
+    if (opt.relationshipsChange) {
+      for (const [charId, delta] of Object.entries(opt.relationshipsChange)) {
+        this.updateRelationship(charId, delta);
+      }
+    }
+
     // Add monthly salary to wealth
     const stage = this.getCurrentStage();
     this.wealth += stage.baseSalary;
@@ -872,6 +1087,80 @@ export class CareerManager {
       path: opt.path,
       resultText: resolvedResult,
       perkEarned: opt.perkEarned
+    };
+  }
+
+  updateRelationship(characterId, delta) {
+    if (this.relationships && this.relationships[characterId] !== undefined) {
+      this.relationships[characterId] = Math.max(0, Math.min(100, this.relationships[characterId] + delta));
+    }
+  }
+
+  getRelationshipStatus(characterId) {
+    const val = this.relationships?.[characterId] ?? 50;
+    if (val >= 80) return { label: 'حليف مخلص وشديد الولاء', color: '#10b981', tier: 'high', score: val };
+    if (val >= 60) return { label: 'علاقة وطيدة وإيجابية', color: '#3b82f6', tier: 'good', score: val };
+    if (val >= 40) return { label: 'علاقة عمل رسمية متوازنة', color: '#eab308', tier: 'neutral', score: val };
+    if (val >= 20) return { label: 'توتر وحذر متبادل', color: '#f97316', tier: 'strained', score: val };
+    return { label: 'عداء واستياء شديد', color: '#ef4444', tier: 'hostile', score: val };
+  }
+
+  evaluateCareerEnding(chosenPath) {
+    const isFemale = this.gender === 'female';
+
+    // Condition 1: Downfall (Regulatory crackdown if low integrity and alienated CBE inspector)
+    if (this.integrity < 40 && (this.relationships?.hazem ?? 50) < 35) {
+      return {
+        id: 'ending_downfall',
+        type: 'downfall',
+        badge: 'تحقيق رقابي ومساءلة CBE',
+        icon: '🚨',
+        title: 'السقوط في قبضة الرقابة (The Regulatory Downfall)',
+        quote: '«الثقة المصرفية تبنى في عقود، لكنها تسقط في لحظة طمع واحدة!»',
+        desc: isFemale
+          ? `أدت التنازلات الأخلاقية والمجاملات الائتمانية غير المحسوبة إلى إثارة شكوك المفتش حازم سليم والبنك المركزي المصري. شنت الرقابة الميدانية حملة تفتيش مفاجئة كشفت مخالفات جسيمة للتعليمات والتحوط، مما قاد إلى عزلكِ من الإدارة والتحقيق الداخلي، لتنتهي رحلتكِ بدرس تاريخي قاسٍ.`
+          : `أدت التنازلات الأخلاقية والمجاملات الائتمانية غير المحسوبة إلى إثارة شكوك المفتش حازم سليم والبنك المركزي المصري. شنت الرقابة الميدانية حملة تفتيش مفاجئة كشفت مخالفات جسيمة للتعليمات والتحوط، مما قاد إلى عزلك من الإدارة والتحقيق الداخلي، لتنتهي رحلتك بدرس تاريخي قاسٍ.`,
+        financialStatus: 'تجميد الحوافز وتعيين حارس قضائي مؤقت',
+        reputationImpact: -30,
+        canStartTycoon: true,
+        tycoonBonus: 0
+      };
+    }
+
+    // Condition 2: Wolf of Banking / Corporate Dealmaker (High wealth / networking or remained corporate leader)
+    if (this.wealth >= 80000 || this.networking >= 70 || chosenPath === 'remain_ceo') {
+      return {
+        id: 'ending_wolf',
+        type: 'wolf',
+        badge: 'نفوذ استثماري وشبكة حيتان المال',
+        icon: '🐺',
+        title: 'ذئب الصفقات ورئيس مجلس الإدارة التنفيذي (The Dealmaker CEO)',
+        quote: '«السوق لا يعترف إلا بالأرقام والأرباح.. والفرص تصنع للأقوياء فقط!»',
+        desc: isFemale
+          ? `أصبحتِ إحدى أشرس وأقوى الشخصيات المصرفية في السوق المصري والشرق الأوسط! تحالفاتكِ مع كبار المستثمرين مثل الحاج عاشور وماجد الشناوي فتحت لكِ أبواب كبريات الصفقات والاستحواذات بالمليارات، لتتربعي على عرش الإدارة التنفيذية برؤية استثمارية براغماتية لا ترحم.`
+          : `أصبحت أحد أشرس وأقوى الشخصيات المصرفية في السوق المصري والشرق الأوسط! تحالفاتك مع كبار المستثمرين مثل الحاج عاشور وماجد الشناوي فتحت لك أبواب كبريات الصفقات والاستحواذات بالمليارات، لتتربع على عرش الإدارة التنفيذية برؤية استثمارية براغماتية لا ترحم.`,
+        financialStatus: `محفظة استثمارية ضخمة برصيد ${this.wealth.toLocaleString('ar-EG')} ج.م`,
+        reputationImpact: 15,
+        canStartTycoon: true,
+        tycoonBonus: 35000
+      };
+    }
+
+    // Condition 3: Legendary Titan / National Banking Pioneer (High integrity, national founding, beloved by all)
+    return {
+      id: 'ending_legendary',
+      type: 'legendary',
+      badge: 'إرث تاريخي ونهضة مصرفية وطنية',
+      icon: '👑',
+      title: 'الأسطورة المصرفية ورائد التأسيس الوطني (The National Banking Titan)',
+      quote: '«العمل المصرفي الشريف هو العمود الفقري لنهضة مصر وازدهار شعبها.»',
+      desc: isFemale
+        ? `سرتِ على درب رواد الاقتصاد المصري العظام! بفضل كفاءتكِ الفذة ونزاهتكِ الحديدية وثقة المودعين والبنك المركزي، قُدتِ تأسيس أول صرح مصرفي مصري حديث برأس مال قوي، ليصبح البنك نموذجاً يُحتذى به في التنمية والشمول المالي ودعم المشروعات الوطنية.`
+        : `سرت على درب رواد الاقتصاد المصري العظام! بفضل كفاءتك الفذة ونزاهتك الحديدية وثقة المودعين والبنك المركزي، قدت تأسيس أول صرح مصرفي مصري حديث برأس مال قوي، ليصبح البنك نموذجاً يُحتذى به في التنمية والشمول المالي ودعم المشروعات الوطنية.`,
+      financialStatus: `رأس مال مدعوم برصيد ${this.wealth.toLocaleString('ar-EG')} ج.م ودعم مؤسسي كامل`,
+      reputationImpact: 25,
+      canStartTycoon: true,
+      tycoonBonus: 50000
     };
   }
 
@@ -935,7 +1224,8 @@ export class CareerManager {
         currentEventIndex: this.currentEventIndex,
         acquiredPerks: this.acquiredPerks,
         decisionHistory: this.decisionHistory,
-        activeDialogueState: this.activeDialogueState
+        activeDialogueState: this.activeDialogueState,
+        relationships: this.relationships
       };
       localStorage.setItem('egyptian_bank_career', JSON.stringify(data));
       if (typeof window !== 'undefined' && window.cloudSaveService) {
@@ -967,6 +1257,7 @@ export class CareerManager {
         this.acquiredPerks = data.acquiredPerks || [];
         this.decisionHistory = data.decisionHistory || [];
         this.activeDialogueState = data.activeDialogueState || null;
+        this.relationships = data.relationships || this.relationships;
       }
     } catch (e) {
       console.warn('LocalStorage loadCareer failed', e);
@@ -1112,5 +1403,14 @@ export class CareerManager {
     this.gender = 'male';
     this.name = 'أحمد مصطفى';
     this.avatar = './assets/characters/player.jpg';
+    this.relationships = {
+      farouk: 50,
+      fatma: 50,
+      hazem: 50,
+      ashour: 50,
+      sara: 50,
+      maged: 50,
+      mahmoud: 50
+    };
   }
 }

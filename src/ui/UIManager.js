@@ -393,8 +393,12 @@ export class UIManager {
       // Launch Tycoon from Career (Transition)
       if (e.target.closest('#launch-tycoon-from-career-btn')) {
         const bootstrap = this.state.careerManager.exportToTycoon();
+        if (this._endingBonus) {
+          bootstrap.startingCash += this._endingBonus;
+        }
         this.state.applyCareerBootstrap(bootstrap);
         this.audio.playSuccess();
+        this.closeModal();
         this.render();
         this.showToast(bootstrap.summaryMsg, 'success', 6000);
         return;
@@ -413,6 +417,20 @@ export class UIManager {
       if (e.target.closest('#theme-toggle-btn')) {
         this.cycleTheme();
         this.audio.playClick();
+        return;
+      }
+
+      // Open Banking Relationships Dossier Modal
+      if (e.target.closest('#relationships-dossier-btn')) {
+        this.audio.playClick();
+        this.showRelationshipsDossierModal();
+        return;
+      }
+
+      // 3D Branch Floor Mode Button from Career
+      if (e.target.closest('#career-floor-3d-btn')) {
+        this.audio.playClick();
+        this.launch3DCareerMode();
         return;
       }
 
@@ -2419,6 +2437,101 @@ export class UIManager {
     }
   }
 
+  showRelationshipsDossierModal() {
+    let modalContainer = document.getElementById('modal-container');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'modal-container';
+      document.body.appendChild(modalContainer);
+    }
+
+    const cm = this.state.careerManager;
+    if (!cm) return;
+
+    const characters = [
+      { id: 'farouk', name: 'الأستاذ فاروق النحاس', role: 'مدير فرع المهندسين الصارم', icon: '👔' },
+      { id: 'mahmoud', name: 'محمود عبد الفتاح', role: 'زميل الشباك وملك المقالب', icon: '☕' },
+      { id: 'sara', name: 'سارة المهدي', role: 'أخصائية التجزئة ووحش التارجت', icon: '📈' },
+      { id: 'fatma', name: 'الحاجة فاطمة أم إبراهيم', role: 'عميلة مسنة من أصحاب المعاشات', icon: '👵' },
+      { id: 'hazem', name: 'المفتش حازم سليم', role: 'كبير مفتشي الرقابة بالمركزي (CBE)', icon: '⚖️' },
+      { id: 'ashour', name: 'الحاج عاشور المقاول', role: 'رجل أعمال ومستثمر كبار العملاء VIP', icon: '🏗️' },
+      { id: 'maged', name: 'ماجد الشناوي', role: 'مستقطب كفاءات دولي (Headhunter)', icon: '🌐' }
+    ];
+
+    modalContainer.innerHTML = `
+      <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-card" style="max-width: 840px; max-height: 90vh; overflow-y: auto;">
+          <div class="modal-header d-flex justify-content-between align-items-center">
+            <h3>🤝 شبكة العلاقات المصرفية ومؤشرات الولاء</h3>
+            <span class="badge tier-badge">مسيرة: ${cm.name}</span>
+          </div>
+
+          <div class="modal-body">
+            <p class="font-sm text-muted mb-4" style="line-height: 1.6;">
+              العلاقات هي الشريان الخفي في الجهاز المصرفي. تؤثر قراراتك اليومية وردودك الميدانية في تعزيز الثقة أو إثارة الشكوك، وتحدد مسار صعودك ونهايتك المهنية وفرص تأسيس بنكك.
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px;">
+              ${characters.map(char => {
+                const dossier = cm.getCharacterDossier(char.id);
+                const rel = cm.getRelationshipStatus(char.id);
+                return `
+                  <div style="background: rgba(15, 23, 42, 0.8); border: 1.5px solid ${rel.color}45; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      <img src="${dossier.avatar}" style="width: 54px; height: 54px; border-radius: 12px; object-fit: cover; border: 2px solid ${rel.color};" alt="${dossier.name}">
+                      <div style="flex: 1;">
+                        <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: #f8fafc;">${char.name}</h4>
+                        <div style="font-size: 12px; color: #94a3b8;">${char.role}</div>
+                      </div>
+                      <span style="background: ${rel.color}25; color: ${rel.color}; border: 1px solid ${rel.color}; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800;">
+                        ${rel.label}
+                      </span>
+                    </div>
+
+                    <div>
+                      <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+                        <span style="color: #cbd5e1;">مؤشر الثقة والولاء المتبادل</span>
+                        <strong style="color: ${rel.color}; font-size: 13px;">${rel.score}/100</strong>
+                      </div>
+                      <div style="background: rgba(51, 65, 85, 0.6); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="width: ${rel.score}%; height: 100%; background: ${rel.color}; border-radius: 4px; transition: width 0.4s ease;"></div>
+                      </div>
+                    </div>
+
+                    <div style="font-size: 12px; color: #94a3b8; line-height: 1.5; font-style: italic; border-right: 2px solid ${rel.color}; padding-right: 8px;">
+                      ${dossier.quote}
+                    </div>
+
+                    <button class="btn btn-secondary btn-sm w-full" data-dossier-id="${char.id}" style="margin-top: 2px; font-size: 12px; font-weight: 700;">
+                      عرض الملف المهني الكامل 🔎
+                    </button>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="modal-footer mt-4">
+            <button id="close-relationships-modal-btn" class="btn btn-primary w-full">إغلاق ✕</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('close-relationships-modal-btn')?.addEventListener('click', () => {
+      this.closeModal();
+    });
+
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          this.closeModal();
+        }
+      });
+    }
+  }
+
   renderCareerMode() {
     const cm = this.state.careerManager;
     const stage = cm.getCurrentStage();
@@ -2446,6 +2559,12 @@ export class UIManager {
             </div>
 
             <div class="career-header-actions d-flex gap-2 align-items-center">
+              <button id="career-floor-3d-btn" class="btn btn-outline-primary" title="التجوال المباشر داخل فرع البنك 3D والتفاعل مع الزملاء">
+                🎮 تجوال 3D
+              </button>
+              <button id="relationships-dossier-btn" class="btn btn-outline-info" title="عرض شبكة العلاقات المصرفية ومستوى الولاء مع الشخصيات">
+                🤝 شبكة العلاقات
+              </button>
               <button id="return-to-vault-btn" class="btn btn-outline-warning" title="العودة لشاشة الخزانة التفاعلية">
                 🔒 شاشة الخزانة
               </button>
@@ -2740,41 +2859,52 @@ export class UIManager {
 
     const cm = this.state.careerManager;
     const isFemale = cm && cm.gender === 'female';
+    const ending = cm && typeof cm.evaluateCareerEnding === 'function' ? cm.evaluateCareerEnding(res.path) : null;
     const isFoundBank = res.path === 'found_bank';
     const resolvedResult = cm ? cm.resolveText(res.resultText) : res.resultText;
-    const titleText = isFoundBank 
-      ? (isFemale ? 'تأسيس بنككِ الخاص بالتحالف مع المستثمرين' : 'تأسيس بنكك الخاص بالتحالف مع المستثمرين')
-      : (isFemale ? 'رئاسة مجلس إدارة البنك والقيادة المؤسسية' : 'رئاسة مجلس إدارة البنك والقيادة المؤسسية');
     const roleTitle = isFemale ? 'رئيسة مجلس الإدارة' : 'رئيس مجلس الإدارة';
+
+    // Store ending bonus for tycoon bootstrap
+    this._endingBonus = ending?.tycoonBonus || 0;
 
     modalContainer.innerHTML = `
       <div id="modal-overlay" class="modal-overlay">
-        <div class="modal-card">
+        <div class="modal-card" style="max-width: 660px; max-height: 90vh; overflow-y: auto;">
           <div class="modal-header">
-            <h3>⚡ المنعطف التاريخي الأكبر في مسيرتك!</h3>
+            <h3>⚡ المنعطف التاريخي الأكبر وخاتمة مسيرة الصعود!</h3>
           </div>
           <div class="modal-body text-center">
-            <div style="font-size: 52px;" class="mb-3">${isFoundBank ? '🏛️' : '👑'}</div>
-            <h3 class="text-gold mb-2">${titleText}</h3>
-            <p class="font-lg mb-4" style="line-height: 1.7;">${resolvedResult}</p>
+            <div style="font-size: 56px;" class="mb-2">${ending ? ending.icon : (isFoundBank ? '🏛️' : '👑')}</div>
+            <div class="mb-2">
+              <span class="badge ${ending?.type === 'downfall' ? 'tier-badge' : (ending?.type === 'wolf' ? 'manager-badge' : 'tier-badge')}" style="font-size: 13px; padding: 6px 14px;">
+                ${ending?.badge || 'نهاية المسيرة المهنية'}
+              </span>
+            </div>
+            <h3 class="text-gold mb-2" style="font-size: 20px;">${ending ? ending.title : (isFoundBank ? 'تأسيس بنكك الخاص بالتحالف مع المستثمرين' : 'رئاسة مجلس إدارة البنك والقيادة المؤسسية')}</h3>
+            <p class="font-md mb-3" style="line-height: 1.8; color: #cbd5e1; text-align: justify; padding: 0 10px;">${ending ? ending.desc : resolvedResult}</p>
             
-            ${isFoundBank ? `
-              <div class="training-card mb-4 border-gold text-right">
-                <div class="training-info">
-                  <div class="training-icon">💼</div>
-                  <div>
-                    <h4>حزمة التأسيس الاستثنائية ${isFemale ? 'الممنوحة لكِ بصفتكِ' : 'الممنوحة لك بصفتك'} ${roleTitle}:</h4>
-                    <p>• رأس مال انطلاق مدعوم: <strong>${(50000 + Math.min(50000, Math.round(cm.wealth * 0.5))).toLocaleString('ar-EG')} ج.م</strong></p>
-                    <p>• بونص سمعة وثقة سوقية مبدئية: <strong>+${Math.round((cm.integrity + cm.networking) / 10)}%</strong></p>
-                    <p>• كافة المهارات والأوسمة المكتسبة ${isFemale ? 'سترافقكِ في إدارتكِ للبنك!' : 'سترافقك في إدارتك للبنك!'}</p>
-                  </div>
-                </div>
+            ${ending?.quote ? `
+              <div class="dossier-quote-box mb-3" style="font-size: 14px;">
+                ${ending.quote}
               </div>
             ` : ''}
+
+            <div class="training-card mb-4 border-gold text-right">
+              <div class="training-info">
+                <div class="training-icon">💼</div>
+                <div>
+                  <h4>حزمة ما بعد المسيرة ${isFemale ? 'الممنوحة لكِ بصفتكِ' : 'الممنوحة لك بصفتك'} ${roleTitle}:</h4>
+                  <p>• الوضع المالي: <strong>${ending?.financialStatus || `${cm.wealth.toLocaleString('ar-EG')} ج.م`}</strong></p>
+                  <p>• رأس مال انطلاق مدعوم: <strong>${(50000 + (ending?.tycoonBonus || 0) + Math.min(50000, Math.round(cm.wealth * 0.5))).toLocaleString('ar-EG')} ج.م</strong></p>
+                  <p>• أثر السمعة السوقية المبدئية: <strong>+${Math.max(0, Math.round((cm.integrity + cm.networking) / 10) + (ending?.reputationImpact || 0))}%</strong></p>
+                  <p>• الأوسمة والمهارات المكتسبة (${cm.acquiredPerks.length}): ${cm.acquiredPerks.map(p => p.icon + ' ' + p.title).join(' • ') || 'لا توجد'}</p>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
             <button id="launch-tycoon-from-career-btn" class="btn btn-primary btn-lg w-full">
-              🚀 انطلاق إلى لوحة التحكم المصرفية الكبرى (Bank Tycoon)
+              🚀 الدخول إلى لوحة إدارة البنك الشاملة (Bank Tycoon)
             </button>
           </div>
         </div>

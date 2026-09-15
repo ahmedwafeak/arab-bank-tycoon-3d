@@ -153,7 +153,8 @@ class CloudSaveService {
         currentStageIndex: this.careerManager.currentStageIndex,
         currentEventIndex: this.careerManager.currentEventIndex,
         acquiredPerks: this.careerManager.acquiredPerks || [],
-        decisionHistory: this.careerManager.decisionHistory || []
+        decisionHistory: this.careerManager.decisionHistory || [],
+        relationships: this.careerManager.relationships || {}
       };
     }
 
