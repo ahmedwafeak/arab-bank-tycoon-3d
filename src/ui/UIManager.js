@@ -92,16 +92,10 @@ export class UIManager {
         return;
       }
 
-      // Enter Direct Tycoon Bank System
-      if (e.target.closest('#btn-enter-tycoon, #vault-direct-tycoon-btn')) {
-        this.audio.playCash();
-        this.triggerEntranceTransition(() => {
-          if (this.state.isInitialized) {
-            this.render();
-          } else {
-            this.showOnboardingModal();
-          }
-        });
+      // Enter Direct Tycoon Bank System (LOCKED)
+      if (e.target.closest('#btn-enter-tycoon, #btn-enter-tycoon-locked, #vault-direct-tycoon-btn, #start-direct-tycoon-locked-btn, #start-direct-tycoon-btn')) {
+        this.audio.playError ? this.audio.playError() : this.audio.playClick();
+        this.showToast('🔒 نمط تأسيس وإدارة البنك المباشر مغلق وموقوف مؤقتاً! يجب عليك أولاً خوض مسيرة صعود الموظف من الصفر والارتقاء في السلم الوظيفي.', 'warning', 5000);
         return;
       }
 
@@ -363,10 +357,10 @@ export class UIManager {
         return;
       }
 
-      // Mode Selection: Start Direct Tycoon
-      if (e.target.closest('#start-direct-tycoon-btn')) {
-        this.audio.playClick();
-        this.showOnboardingModal();
+      // Mode Selection: Direct Tycoon is LOCKED
+      if (e.target.closest('#start-direct-tycoon-btn, #start-direct-tycoon-locked-btn')) {
+        this.audio.playError ? this.audio.playError() : this.audio.playClick();
+        this.showToast('🔒 نمط تأسيس وإدارة البنك المباشر مغلق وموقوف مؤقتاً! يجب عليك أولاً خوض مسيرة صعود الموظف من الصفر والارتقاء في السلم الوظيفي.', 'warning', 5000);
         return;
       }
 
@@ -401,6 +395,31 @@ export class UIManager {
         this.closeModal();
         this.render();
         this.showToast(bootstrap.summaryMsg, 'success', 6000);
+        return;
+      }
+
+      // Career Finish: Free Roam 3D
+      if (e.target.closest('#career-finish-explore-btn')) {
+        this.closeModal();
+        this.launch3DCareerMode();
+        this.showToast('🏆 تهانينا على ختام مسيرتك المصرفية! يمكنك الآن التجوال بحرية في أرجاء الفرع والتحدث مع الزملاء.', 'success', 6000);
+        return;
+      }
+
+      // Switch back to Career Visual Novel from 3D Floor
+      if (e.target.closest('#switch-to-career-novel-btn')) {
+        this.audio.playClick();
+        if (this.bankFloorScene) {
+          this.bankFloorScene.pause();
+        }
+        this.renderCareerMode();
+        return;
+      }
+
+      // Open Career Dossier modal from 3D HUD
+      if (e.target.closest('#btn-open-career-dossier-modal')) {
+        this.audio.playClick();
+        this.showRelationshipsDossierModal();
         return;
       }
 
@@ -1418,24 +1437,30 @@ export class UIManager {
         <p class="entrance-modal-sub">حدد التجربة التي ترغب في خوضها الآن داخل البنك المصري:</p>
 
         <div class="modes-choice-grid">
-          <!-- Option 1: Career Story -->
+          <!-- Option 1: Career Story (Active & Recommended) -->
           <div class="mode-choice-card featured-mode" id="btn-enter-career">
+            <div class="mode-badge-rec">✨ النمط المفتوح والأساسي</div>
             <div class="mode-choice-icon">👔</div>
             <h3 class="mode-choice-title">مسيرة صعود الموظف</h3>
             <p class="mode-choice-desc">
-              ابدأ كخريج على شباك الصراف، خض مقالب الزملاء اليومية، واجه كبار العملاء وضغوط التارجت حتى تصنع مجدك ومستقبلك!
+              ابدأ كخريج على شباك الصراف، خض مقالب الزملاء اليومية، واجه كبار العملاء وضغوط التارجت وتجول بحرية داخل الفرع ثلاثي الأبعاد حتى تصنع مجدك!
             </p>
             <button class="btn btn-primary w-full">🚀 خوض المسيرة المهنية</button>
           </div>
 
-          <!-- Option 2: Direct Tycoon 3D Floor -->
-          <div class="mode-choice-card" id="btn-enter-tycoon">
-            <div class="mode-choice-icon">🏛️</div>
-            <h3 class="mode-choice-title">إمبراطورية البنك (3D Tycoon)</h3>
-            <p class="mode-choice-desc">
-              تولَّ قيادة صالة البنك ثلاثية الأبعاد، شاهد الموظفين والعملاء يتحركون بحركات واقعية 3D، واستثمر في البورصة والفروع والـ ATMs!
+          <!-- Option 2: Direct Tycoon 3D Floor (LOCKED) -->
+          <div class="mode-choice-card" id="btn-enter-tycoon-locked" style="opacity: 0.7; border: 1.5px dashed #ef4444; background: rgba(15, 23, 42, 0.7); cursor: not-allowed; position: relative;">
+            <div style="position: absolute; top: 12px; left: 12px; background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; border-radius: 6px; font-size: 11px; font-weight: 800; padding: 2px 8px;">
+              🔒 مغلق حالياً
+            </div>
+            <div class="mode-choice-icon" style="filter: grayscale(1);">🏛️</div>
+            <h3 class="mode-choice-title" style="color: #94a3b8;">إمبراطورية البنك (3D Tycoon)</h3>
+            <p class="mode-choice-desc" style="color: #64748b;">
+              قيادة البنك المباشرة وإدارة الأقسام الـ 18 مغلقة وموقوفة مؤقتاً؛ يجب أولاً إثبات كفاءتك وخوض مسيرة صعود الموظف من الصفر والارتقاء في السلم الوظيفي!
             </p>
-            <button class="btn btn-outline-primary w-full">⏩ دخول صالة البنك 3D</button>
+            <button class="btn btn-secondary w-full" style="cursor: not-allowed; opacity: 0.85; background: #334155; border: 1px dashed #64748b; color: #cbd5e1; font-weight: 800;">
+              🔒 النمط مغلق (أكمل المسيرة أولاً)
+            </button>
           </div>
         </div>
 
@@ -2089,20 +2114,23 @@ export class UIManager {
               </button>
             </div>
 
-            <!-- Mode 2: Direct Tycoon Mode -->
-            <div class="mode-card">
-              <div class="mode-icon">🏛️</div>
-              <h3 class="mode-card-title">تأسيس بنك مباشر (Direct Tycoon)</h3>
-              <p class="mode-card-desc">
-                تخطَ مرحلة الموظف وابدأ مباشرة كرئيس مجلس إدارة مؤسس برأس مال 50,000 ج.م وأدر كافة أنظمة البنك (البورصة، إنستاباي، الشهادات، الفروع، والمشاريع).
+            <!-- Mode 2: Direct Tycoon Mode (LOCKED) -->
+            <div class="mode-card" style="opacity: 0.7; border: 1.5px dashed #ef4444; background: rgba(15, 23, 42, 0.7); position: relative;">
+              <div style="position: absolute; top: 14px; left: 14px; background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; border-radius: 6px; font-size: 11px; font-weight: 800; padding: 3px 10px;">
+                🔒 مغلق حالياً
+              </div>
+              <div class="mode-icon" style="filter: grayscale(1);">🏛️</div>
+              <h3 class="mode-card-title" style="color: #94a3b8;">تأسيس بنك مباشر (Direct Tycoon)</h3>
+              <p class="mode-card-desc" style="color: #64748b;">
+                تأسيس البنك المباشر وإدارة الـ 18 قسماً مصرفياً مغلقة وموقوفة مؤقتاً؛ يجب أولاً خوض مسيرة صعود الموظف من الصفر والارتقاء في السلم الوظيفي!
               </p>
-              <ul class="mode-features">
-                <li>✦ لوحة تحكم مصرفية متكاملة لـ 12 قسماً مصرفياً</li>
-                <li>✦ تداول أسهم EGX وحرب الشهادات الادخارية والذهب</li>
-                <li>✦ تفتيش البنك المركزي وتقييم CAMELS الرقابي</li>
+              <ul class="mode-features" style="opacity: 0.6; color: #64748b;">
+                <li>✦ لوحة تحكم مصرفية متكاملة لـ 18 قسماً مصرفياً (مغلقة)</li>
+                <li>✦ تداول أسهم EGX وحرب الشهادات الادخارية (مغلقة)</li>
+                <li>✦ تفتيش البنك المركزي وتقييم CAMELS الرقابي (مغلق)</li>
               </ul>
-              <button id="start-direct-tycoon-btn" class="btn btn-outline-primary btn-lg w-full mt-3">
-                ⏩ انطلاق مباشر كمدير بنك
+              <button id="start-direct-tycoon-locked-btn" class="btn btn-secondary btn-lg w-full mt-3" style="cursor: not-allowed; opacity: 0.85; background: #334155; border: 1.5px dashed #64748b; color: #cbd5e1; font-weight: 800;">
+                🔒 النمط مغلق (أكمل المسيرة أولاً)
               </button>
             </div>
           </div>
@@ -2241,10 +2269,65 @@ export class UIManager {
     this.showToast(`مرحباً بك${isFemale ? 'ِ' : ''} يا ${title} ${name}! تم استلام عملك${isFemale ? 'ِ' : ''} ${roleDesc} بفرع المهندسين. بالتوفيق في مسيرتك${isFemale ? 'ِ' : ''}!`, 'success', 5000);
   }
 
+  renderCareerFloorView() {
+    const cm = this.state.careerManager;
+    const stage = cm ? cm.getCurrentStage() : { title: 'صراف شباك', baseSalary: 6000 };
+    const isFemale = cm && cm.gender === 'female';
+
+    this.appContainer.innerHTML = `
+      ${this.renderFinancialTicker()}
+      <div class="career-floor-screen" style="position: relative; width: 100%; height: calc(100vh - 36px); overflow: hidden; display: flex; flex-direction: column;">
+        <!-- Top Career Floor Bar -->
+        <header class="career-header" style="padding: 8px 20px; z-index: 100; flex-shrink: 0; background: rgba(15, 23, 42, 0.95); border-bottom: 1.5px solid rgba(56, 189, 248, 0.25);">
+          <div class="career-header-content d-flex justify-content-between align-items-center">
+            <div class="career-avatar-box d-flex align-items-center gap-3" data-dossier-id="player" style="cursor: pointer;" title="انقر لعرض ملفك التعريفي">
+              <img src="${cm.avatar}" class="career-header-avatar-img" alt="${cm.name}" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover; border: 1.5px solid #38bdf8;">
+              <div>
+                <h3 class="career-name" style="margin: 0; font-size: 16px; color: #f8fafc;">${cm.name}</h3>
+                <div class="career-meta d-flex gap-2 align-items-center" style="margin-top: 2px;">
+                  <span class="badge ${isFemale ? 'tier-badge' : 'manager-badge'}" style="font-size: 11px;">${isFemale ? '👩 الأستاذة' : '👨 الأستاذ'}</span>
+                  <span class="badge tier-badge" style="font-size: 11px;">💼 ${stage.title}</span>
+                  <span class="badge date-badge" style="font-size: 11px;">💵 الراتب: ${stage.baseSalary.toLocaleString('ar-EG')} ج.م / شهر</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="career-header-actions d-flex gap-2 align-items-center">
+              <button id="switch-to-career-novel-btn" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-weight: 800;" title="العودة لشاشة الرواية التفاعلية والأحداث والقرارات">
+                📋 شاشة المسيرة والقرارات
+              </button>
+              <button id="relationships-dossier-btn" class="btn btn-outline-info" title="عرض شبكة العلاقات المصرفية ومستوى الولاء مع الشخصيات">
+                🤝 شبكة العلاقات
+              </button>
+              <button id="return-to-vault-btn" class="btn btn-outline-warning" title="العودة لشاشة الخزانة التفاعلية">
+                🔒 شاشة الخزانة
+              </button>
+              <button id="theme-toggle-btn" class="theme-switch-btn" title="تبديل مظهر وألوان اللعبة">
+                <span class="theme-badge-dot"></span>
+                <span>🎨 ${this.getThemeDisplayName()}</span>
+              </button>
+              <button id="reset-career-btn" class="btn btn-outline-danger" title="إعادة المسيرة من البداية">
+                🔄 إعادة المسيرة
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <!-- 3D Bank Floor Viewport (WASD movement, NPC dialogues, teller interaction) -->
+        <div style="flex: 1; position: relative; width: 100%; height: 100%;">
+          ${this.renderBankFloorContainer()}
+        </div>
+
+        <div id="toast-container"></div>
+        <div id="modal-container"></div>
+      </div>
+    `;
+  }
+
   launch3DCareerMode() {
     this.closeModal();
     this.viewMode = 'floor';
-    this.render();
+    this.renderCareerFloorView();
     this.initOrResumeBankFloor();
 
     if (this.bankFloorScene) {
@@ -2258,7 +2341,7 @@ export class UIManager {
 
     const cm = this.state.careerManager;
     const name = cm?.name || 'الموظف';
-    this.showToast(`🎮 تم تفعيل التحكم المباشر بالشخصية 3D! تحرك بـ [WASD] وتوجه للمدير فاروق بالحقيبة واضغط [E]`, 'info', 6000);
+    this.showToast(`🎮 تم تفعيل التحكم المباشر بالشخصية 3D! تحرك بـ [WASD] وتوجه للمدير فاروق والزملاء وشباك الصراف واضغط [E]`, 'info', 6000);
   }
 
   /* ========================================================
@@ -2902,9 +2985,12 @@ export class UIManager {
               </div>
             </div>
           </div>
-          <div class="modal-footer">
-            <button id="launch-tycoon-from-career-btn" class="btn btn-primary btn-lg w-full">
-              🚀 الدخول إلى لوحة إدارة البنك الشاملة (Bank Tycoon)
+          <div class="modal-footer" style="display: flex; flex-direction: column; gap: 10px;">
+            <button id="career-finish-explore-btn" class="btn btn-primary btn-lg w-full" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-weight: 900;">
+              🎉 استعراض وسام الإنجاز والتجوال الحر بالفرع 3D ◀
+            </button>
+            <button id="reset-career-btn" class="btn btn-outline-warning w-full">
+              🔄 خوض المسيرة من جديد بمسارات وقرارات مختلفة
             </button>
           </div>
         </div>
