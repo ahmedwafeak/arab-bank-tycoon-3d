@@ -270,7 +270,7 @@ export class CareerProgressionManager extends CareerManager {
    * Update vital stats with lifestyle bonuses
    */
   recalculateStats() {
-    const bonuses = this.lifestyle.calculateTotalBonuses();
+    const bonuses = this.lifestyle ? this.lifestyle.calculateTotalBonuses() : { prestige: 0, charisma: 0, stressReduction: 0, energyBoost: 0 };
     this.socialPrestige = Math.min(100, Math.max(5, (this.currentStageIndex * 12) + bonuses.prestige));
     this.charisma = Math.min(100, Math.max(10, 15 + bonuses.charisma));
     return bonuses;
@@ -473,6 +473,8 @@ export class CareerProgressionManager extends CareerManager {
   }
 
   saveCareer() {
+    if (this._isSaving) return;
+    this._isSaving = true;
     try {
       if (typeof localStorage === 'undefined') return;
       const data = {
@@ -507,6 +509,8 @@ export class CareerProgressionManager extends CareerManager {
       }
     } catch (e) {
       console.warn('LocalStorage saveCareer failed', e);
+    } finally {
+      this._isSaving = false;
     }
   }
 

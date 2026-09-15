@@ -212,17 +212,15 @@ class CloudSaveService {
   }
 
   saveLocal() {
+    if (this._isSaving) return;
+    this._isSaving = true;
     try {
       const payload = this.createPayload();
       localStorage.setItem('bank_cloud_cached_save', JSON.stringify(payload));
-      if (this.gameState && typeof this.gameState.saveGame === 'function') {
-        this.gameState.saveGame();
-      }
-      if (this.careerManager && typeof this.careerManager.saveCareer === 'function') {
-        this.careerManager.saveCareer();
-      }
     } catch (e) {
       console.warn('saveLocal error:', e);
+    } finally {
+      this._isSaving = false;
     }
   }
 

@@ -2318,7 +2318,7 @@ export class UIManager {
                 <h3 class="career-name" style="margin: 0; font-size: 16px; color: #f8fafc;">${cm.name}</h3>
                 <div class="career-meta d-flex gap-2 align-items-center" style="margin-top: 2px;">
                   <span class="badge ${isFemale ? 'tier-badge' : 'manager-badge'}" style="font-size: 11px;">${isFemale ? '👩 الأستاذة' : '👨 الأستاذ'}</span>
-                  <span class="badge tier-badge" style="font-size: 11px;">💼 ${stage.title}</span>
+                  <span class="badge tier-badge" style="font-size: 11px;">💼 ${cm.getStageTitle ? cm.getStageTitle() : (typeof stage.title === 'string' ? stage.title : stage.title.m)}</span>
                   <span class="badge date-badge" style="font-size: 11px;">💵 الراتب: ${stage.baseSalary.toLocaleString('ar-EG')} ج.م / شهر</span>
                 </div>
               </div>
@@ -3342,7 +3342,7 @@ export class UIManager {
                 <h2 class="career-name">${cm.name}</h2>
                 <div class="career-meta">
                   <span class="badge ${cm.gender === 'female' ? 'tier-badge' : 'manager-badge'}">${cm.gender === 'female' ? '👩 الأستاذة' : '👨 الأستاذ'}</span>
-                  <span class="badge tier-badge">💼 ${stage.title}</span>
+                  <span class="badge tier-badge">💼 ${cm.getStageTitle ? cm.getStageTitle() : (typeof stage.title === 'string' ? stage.title : stage.title.m)}</span>
                   <span class="badge manager-badge">🏛️ ${stage.department}</span>
                   <span class="badge date-badge">💵 الراتب: ${stage.baseSalary.toLocaleString('ar-EG')} ج.م / شهر</span>
                 </div>
@@ -3443,7 +3443,7 @@ export class UIManager {
           <div class="vn-theater-card backdrop-${stage.id}">
             ${event ? `
               <div class="vn-stage-bar">
-                <span class="vn-stage-title">📍 ${stage.title}</span>
+                <span class="vn-stage-title">📍 ${cm.getStageTitle ? cm.getStageTitle() : (typeof stage.title === 'string' ? stage.title : stage.title.m)}</span>
                 <span class="vn-stage-counter">الموقف ${cm.currentEventIndex + 1} من ${(cm.stageEvents[stage.id] || []).length}</span>
               </div>
 

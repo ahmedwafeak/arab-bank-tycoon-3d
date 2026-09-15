@@ -422,6 +422,8 @@ export class GameState {
   }
 
   saveGame() {
+    if (this._isSaving) return;
+    this._isSaving = true;
     try {
       this.lastSaveTimestamp = Date.now();
       const data = {
@@ -476,6 +478,8 @@ export class GameState {
       }
     } catch (e) {
       console.warn('LocalStorage save failed', e);
+    } finally {
+      this._isSaving = false;
     }
   }
 
