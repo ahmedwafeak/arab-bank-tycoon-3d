@@ -1749,7 +1749,8 @@ export class BankFloorScene {
       playerChar: this.careerPlayerChar,
       collisionBoxes: this.collisionBoxes,
       audio: this.audio,
-      initialYaw: 0.65
+      initialYaw: 0.65,
+      getInteractables: () => this.getInteractableList()
     });
 
     // 4. Update workstation desk bindings
@@ -2129,22 +2130,63 @@ export class BankFloorScene {
   }
 
   /**
-   * Raycasting & Interactive Clicks
+   * Fast list of all clickable / interactable 3D targets in the bank
+   */
+  getInteractableList() {
+    const list = [];
+    if (this.storyNPCs) {
+      if (this.storyNPCs.farouk?.model) list.push(this.storyNPCs.farouk.model);
+      if (this.storyNPCs.sara?.model) list.push(this.storyNPCs.sara.model);
+      if (this.storyNPCs.mahmoud?.model) list.push(this.storyNPCs.mahmoud.model);
+    }
+    if (this.workstationDesk?.group) {
+      list.push(this.workstationDesk.group);
+    }
+    if (this.tellers) {
+      this.tellers.forEach(t => {
+        if (t.counterGroup) list.push(t.counterGroup);
+        if (t.clerkMesh) list.push(t.clerkMesh);
+      });
+    }
+    if (this.atms) {
+      this.atms.forEach(a => {
+        if (a.mesh) list.push(a.mesh);
+      });
+    }
+    if (this.vaultMesh) {
+      list.push(this.vaultMesh);
+    }
+    if (this.customers) {
+      this.customers.forEach(c => {
+        if (c.mesh) list.push(c.mesh);
+      });
+    }
+    return list;
+  }
+
+  /**
+   * Raycasting & Interactive Clicks (High Performance, Throttled)
    */
   setupInteractions() {
+    let lastMoveCheck = 0;
     this.onPointerMove = (e) => {
+      const now = performance.now();
+      if (now - lastMoveCheck < 35) return; // 30 FPS throttle
+      lastMoveCheck = now;
+
       const rect = this.canvas.getBoundingClientRect();
       this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
       this.raycaster.setFromCamera(this.mouse, this.camera);
-      const intersects = this.raycaster.intersectObjects(this.scene.children, true);
+      const targets = this.getInteractableList();
+      const intersects = this.raycaster.intersectObjects(targets, true);
 
       let found = null;
       for (const hit of intersects) {
         let obj = hit.object;
         while (obj && obj !== this.scene) {
-          if (obj.userData && obj.userData.interactiveType) {
+          if (obj.userData && (obj.userData.interactiveType || obj.userData.isInteractable)) {
             found = obj;
             break;
           }

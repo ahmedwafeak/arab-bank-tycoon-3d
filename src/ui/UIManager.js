@@ -43,8 +43,12 @@ export class UIManager {
     this.initElements();
     this.setupEventListeners();
 
-    // Start with the Grand 3D Vault Entrance Experience
-    this.renderVaultEntranceScreen();
+    // Start with Mode Selection Screen (with locked Tycoon) or direct Career Mode
+    if (this.state.careerManager && this.state.careerManager.isStarted) {
+      this.launch3DCareerMode();
+    } else {
+      this.showModeSelectionScreen();
+    }
   }
 
 
@@ -183,10 +187,13 @@ export class UIManager {
         return;
       }
 
-      // Return to Entrance from Sidebar
-      if (e.target.closest('#return-to-vault-btn')) {
+      // Return to Mode Selection from Sidebar or HUD
+      if (e.target.closest('#return-to-vault-btn, #return-to-modes-btn')) {
         this.toggleSidebar(false);
-        this.renderVaultEntranceScreen();
+        if (this.bankFloorScene) {
+          this.bankFloorScene.pause();
+        }
+        this.showModeSelectionScreen();
         return;
       }
 
@@ -350,10 +357,14 @@ export class UIManager {
         return;
       }
 
-      // Mode Selection: Start Career
+      // Mode Selection: Start or Resume Career
       if (e.target.closest('#start-career-mode-btn')) {
         this.audio.playClick();
-        this.showCareerCreationModal();
+        if (this.state.careerManager && this.state.careerManager.isStarted) {
+          this.launch3DCareerMode();
+        } else {
+          this.showCareerCreationModal();
+        }
         return;
       }
 
@@ -2110,7 +2121,7 @@ export class UIManager {
                 <li>✦ نقل أموالك وعلاقاتك التأسيسية كحافز انطلاق لبنكك الخاص!</li>
               </ul>
               <button id="start-career-mode-btn" class="btn btn-primary btn-lg w-full mt-3">
-                🚀 ابدأ رحلة صعود الموظف
+                ${this.state.careerManager && this.state.careerManager.isStarted ? '🚀 متابعة مسيرة الموظف (3D)' : '🚀 ابدأ رحلة صعود الموظف'}
               </button>
             </div>
 
@@ -2299,8 +2310,8 @@ export class UIManager {
               <button id="relationships-dossier-btn" class="btn btn-outline-info" title="عرض شبكة العلاقات المصرفية ومستوى الولاء مع الشخصيات">
                 🤝 شبكة العلاقات
               </button>
-              <button id="return-to-vault-btn" class="btn btn-outline-warning" title="العودة لشاشة الخزانة التفاعلية">
-                🔒 شاشة الخزانة
+              <button id="return-to-modes-btn" class="btn btn-outline-warning" title="العودة لشاشة اختيار النمط">
+                🏛️ شاشة البداية
               </button>
               <button id="theme-toggle-btn" class="theme-switch-btn" title="تبديل مظهر وألوان اللعبة">
                 <span class="theme-badge-dot"></span>
@@ -3915,6 +3926,14 @@ export class UIManager {
   }
 
   render() {
+    // Direct Tycoon is locked: redirect any render() call to Career Floor View or Mode Selection
+    if (this.state.careerManager && this.state.careerManager.isStarted) {
+      this.renderCareerFloorView();
+      return;
+    }
+    this.showModeSelectionScreen();
+    return;
+
     const kpis = this.state.getKPIs();
     const tier = this.state.getCurrentTier();
     const marketShare = this.state.competitorsManager ? this.state.competitorsManager.playerMarketShare : 0.5;

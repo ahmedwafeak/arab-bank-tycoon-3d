@@ -141,71 +141,15 @@ export class CharacterManager {
   }
 
   /**
-   * Preload default character models and animations
+   * Preload default character assets (Instant procedural humanoids - 0ms overhead)
    */
   async initDefaultAssets() {
     if (this.loadPromise) return this.loadPromise;
 
-    this.isLoading = true;
-    this.loadPromise = (async () => {
-      try {
-        // 1. Load Main Male Character Model (FBX prioritized)
-        await this.loadCharacterModel('character', [
-          '/assets/characters/character.fbx',
-          '/assets/characters/character.glb',
-          '/assets/character.fbx'
-        ]);
-
-        // 2. Load Female Character Model
-        try {
-          await this.loadCharacterModel('character_female', [
-            '/assets/characters/character_female.fbx',
-            '/assets/characters/character_female.glb',
-            '/assets/character_female.fbx'
-          ]);
-        } catch (e) {
-          console.warn('[CharacterManager] Female character model skipped:', e.message);
-        }
-
-        // 3. Load Skeletal Animations
-        await Promise.allSettled([
-          this.loadAnimation('idle', [
-            '/assets/animations/Breathing Idle.fbx',
-            '/assets/animations/idle.fbx',
-            '/assets/animations/idle.glb'
-          ]),
-          this.loadAnimation('walk', [
-            '/assets/animations/Standard Walk.fbx',
-            '/assets/animations/walk.fbx',
-            '/assets/animations/walk.glb'
-          ]),
-          this.loadAnimation('sit', [
-            '/assets/animations/Sitting Idle.fbx',
-            '/assets/animations/sit.fbx',
-            '/assets/animations/sit.glb'
-          ]),
-          this.loadAnimation('type', [
-            '/assets/animations/Typing.fbx',
-            '/assets/animations/type.fbx',
-            '/assets/animations/work.glb'
-          ])
-        ]);
-
-        this.isLoaded = true;
-        this.isLoading = false;
-        console.log('[CharacterManager] Realistic 3D character assets ready. Upgrading active characters...');
-
-        // Upgrade any placeholders that were spawned while assets were loading
-        this.upgradeAllPlaceholders();
-
-        return true;
-      } catch (err) {
-        this.isLoading = false;
-        console.error('[CharacterManager] Error loading default assets:', err);
-        return false;
-      }
-    })();
-
+    this.isLoading = false;
+    this.isLoaded = true;
+    console.log('[CharacterManager] High-performance procedural 3D humanoids initialized (60 FPS ready).');
+    this.loadPromise = Promise.resolve(true);
     return this.loadPromise;
   }
 
@@ -422,25 +366,61 @@ export class CharacterManager {
     for (let i = 0; i < this.characters.length; i++) {
       const char = this.characters[i];
 
-      // 1. Update Animation Mixer (for realistic models)
+      // 1. Update Animation Mixer (if any realistic model is bound)
       if (char.mixer) {
         char.mixer.update(delta);
       }
 
-      // 2. Animate fallback placeholder limbs if active
+      // 2. Animate procedural humanoid limbs and body states
       if (char.isPlaceholder && char.model && char.model.userData) {
-        char.walkAnimTime += delta * 6;
+        const u = char.model.userData;
+        char.walkAnimTime += delta * 7;
+
         if (char.isMoving) {
-          const anim = Math.sin(char.walkAnimTime);
-          if (char.model.userData.leftLeg) char.model.userData.leftLeg.rotation.x = anim * 0.45;
-          if (char.model.userData.rightLeg) char.model.userData.rightLeg.rotation.x = -anim * 0.45;
-          if (char.model.userData.leftArm) char.model.userData.leftArm.rotation.x = -anim * 0.35;
-          if (char.model.userData.rightArm) char.model.userData.rightArm.rotation.x = anim * 0.35;
+          // Walk cycle: alternating legs and arms
+          const swing = Math.sin(char.walkAnimTime);
+          if (u.leftLeg) u.leftLeg.rotation.x = swing * 0.55;
+          if (u.rightLeg) u.rightLeg.rotation.x = -swing * 0.55;
+          if (u.leftArm) u.leftArm.rotation.x = -swing * 0.45;
+          if (u.rightArm) u.rightArm.rotation.x = swing * 0.45;
+          if (u.torso) u.torso.position.y = 1.08 + Math.abs(Math.sin(char.walkAnimTime * 2)) * 0.03;
+          if (u.head) u.head.position.y = 1.52 + Math.abs(Math.sin(char.walkAnimTime * 2)) * 0.03;
+        } else if (char.currentActionName === 'type') {
+          // Office desk typing: arms bent forward oscillating
+          const tap = Math.sin(char.walkAnimTime * 1.5);
+          if (u.leftArm) {
+            u.leftArm.rotation.x = -0.9 + tap * 0.08;
+            u.leftArm.rotation.z = 0.2;
+          }
+          if (u.rightArm) {
+            u.rightArm.rotation.x = -0.9 - tap * 0.08;
+            u.rightArm.rotation.z = -0.2;
+          }
+          if (u.leftLeg) u.leftLeg.rotation.x = -1.4; // Seated legs
+          if (u.rightLeg) u.rightLeg.rotation.x = -1.4;
+          if (u.head) u.head.rotation.x = 0.15; // Looking down at desk
+        } else if (char.currentActionName === 'sit') {
+          // Seated pose
+          if (u.leftLeg) u.leftLeg.rotation.x = -1.4;
+          if (u.rightLeg) u.rightLeg.rotation.x = -1.4;
+          if (u.leftArm) u.leftArm.rotation.x = -0.5;
+          if (u.rightArm) u.rightArm.rotation.x = -0.5;
+          if (u.head) u.head.rotation.x = 0;
         } else {
-          if (char.model.userData.leftLeg) char.model.userData.leftLeg.rotation.x = 0;
-          if (char.model.userData.rightLeg) char.model.userData.rightLeg.rotation.x = 0;
-          if (char.model.userData.leftArm) char.model.userData.leftArm.rotation.x = 0;
-          if (char.model.userData.rightArm) char.model.userData.rightArm.rotation.x = 0;
+          // Idle breathing
+          const breath = Math.sin(char.walkAnimTime * 0.4);
+          if (u.leftLeg) u.leftLeg.rotation.x = 0;
+          if (u.rightLeg) u.rightLeg.rotation.x = 0;
+          if (u.leftArm) {
+            u.leftArm.rotation.x = breath * 0.05;
+            u.leftArm.rotation.z = 0.06;
+          }
+          if (u.rightArm) {
+            u.rightArm.rotation.x = -breath * 0.05;
+            u.rightArm.rotation.z = -0.06;
+          }
+          if (u.head) u.head.position.y = 1.52 + breath * 0.015;
+          if (u.head) u.head.rotation.x = 0;
         }
       }
 
@@ -469,11 +449,11 @@ export class CharacterManager {
           const dir = target.clone().sub(currentPos).normalize();
           currentPos.addScaledVector(dir, char.speed * delta);
 
-          // Smoothly rotate towards heading
+          // Smoothly rotate towards heading (safe modulus, no while loop)
           const targetHeading = Math.atan2(dir.x, dir.z);
-          let diff = targetHeading - char.model.rotation.y;
-          while (diff < -Math.PI) diff += Math.PI * 2;
-          while (diff > Math.PI) diff -= Math.PI * 2;
+          let diff = (targetHeading - char.model.rotation.y) % (Math.PI * 2);
+          if (diff < -Math.PI) diff += Math.PI * 2;
+          if (diff > Math.PI) diff -= Math.PI * 2;
           char.model.rotation.y += diff * Math.min(1.0, delta * 9);
         }
       }
@@ -481,18 +461,48 @@ export class CharacterManager {
   }
 
   /**
-   * Procedural Fallback Placeholder (Used while models finish downloading)
+   * Procedural Stylized Humanoid - 60 FPS Optimized & Rich Detail
    */
   createFallbackPlaceholder(options = {}) {
     const group = new THREE.Group();
-    const isClerk = options.role === 'clerk' || options.role === 'teller';
-    const isGuard = options.role === 'guard';
-    const isFemale = options.role === 'female' || options.role === 'vip_female';
+    const role = options.role || 'clerk';
+    const isGuard = role === 'guard';
+    const isClerk = role === 'clerk' || role === 'teller';
+    const isVIP = role === 'vip';
+    const isFemale = role === 'female' || role === 'vip_female';
+    const isPlayer = role === 'player';
 
-    const clothesColor = isGuard ? 0x1e3a8a : (isClerk ? 0x0f172a : (isFemale ? 0xd97706 : 0x0284c7));
-    const matSuit = new THREE.MeshStandardMaterial({ color: clothesColor, roughness: 0.5 });
-    const matSkin = new THREE.MeshStandardMaterial({ color: 0xf6d7b0, roughness: 0.6 });
-    const matPants = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 });
+    // Color Palette
+    let suitColor = 0x0f172a; // Default charcoal
+    let pantsColor = 0x1e293b;
+    let tieColor = 0x38bdf8; // Sky blue
+
+    if (isGuard) {
+      suitColor = 0x1e3a8a; // Security navy blue
+      pantsColor = 0x172554;
+      tieColor = 0xf59e0b;
+    } else if (isVIP) {
+      suitColor = 0x334155; // Executive slate gray
+      pantsColor = 0x1e293b;
+      tieColor = 0xd4af37; // Gold tie
+    } else if (isFemale) {
+      suitColor = 0xb45309; // Elegant warm bronze/camel
+      pantsColor = 0x1e293b;
+      tieColor = 0xfef08a;
+    } else if (isPlayer) {
+      suitColor = 0x0c4a6e; // Professional cobalt blue
+      pantsColor = 0x0f172a;
+      tieColor = 0x38bdf8;
+    } else if (options.clothesColor) {
+      suitColor = options.clothesColor;
+    }
+
+    const matSuit = new THREE.MeshStandardMaterial({ color: suitColor, roughness: 0.5 });
+    const matSkin = new THREE.MeshStandardMaterial({ color: 0xf5d0a9, roughness: 0.65 });
+    const matPants = new THREE.MeshStandardMaterial({ color: pantsColor, roughness: 0.6 });
+    const matWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
+    const matTie = new THREE.MeshStandardMaterial({ color: tieColor, roughness: 0.3 });
+    const matGold = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8, roughness: 0.2 });
 
     // Head
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16), matSkin);
@@ -500,20 +510,60 @@ export class CharacterManager {
     head.castShadow = true;
     group.add(head);
 
+    // Hair / Cap
+    if (isGuard) {
+      // Security Peaked Cap
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.19, 0.08, 16), matSuit);
+      cap.position.set(0, 1.63, 0);
+      group.add(cap);
+      const visor = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.02, 0.1), matSuit);
+      visor.position.set(0, 1.61, 0.14);
+      group.add(visor);
+    } else if (isFemale) {
+      // Stylish Hair Bun
+      const hairMat = new THREE.MeshStandardMaterial({ color: 0x271911, roughness: 0.8 });
+      const bun = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 14), hairMat);
+      bun.position.set(0, 1.64, -0.09);
+      group.add(bun);
+    } else {
+      // Short Hair
+      const hairMat = new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.8 });
+      const hair = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.18, 0.09, 14), hairMat);
+      hair.position.set(0, 1.62, -0.01);
+      group.add(hair);
+    }
+
     // Torso
     const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.55, 12), matSuit);
     torso.position.y = 1.08;
     torso.castShadow = true;
     group.add(torso);
 
+    // Shirt Collar & Tie
+    const shirt = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.24, 0.05), matWhite);
+    shirt.position.set(0, 1.22, 0.17);
+    group.add(shirt);
+
+    const tie = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.22, 0.02), matTie);
+    tie.position.set(0, 1.18, 0.2);
+    group.add(tie);
+
+    // Guard badge / Executive pin
+    if (isGuard || isVIP) {
+      const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.01, 8), matGold);
+      pin.rotation.x = Math.PI / 2;
+      pin.position.set(0.1, 1.25, 0.19);
+      group.add(pin);
+    }
+
     // Arms
     const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.45, 0.1), matSuit);
-    leftArm.position.set(-0.24, 1.05, 0);
+    leftArm.position.set(-0.25, 1.05, 0);
     leftArm.castShadow = true;
     group.add(leftArm);
 
     const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.45, 0.1), matSuit);
-    rightArm.position.set(0.24, 1.05, 0);
+    rightArm.position.set(0.25, 1.05, 0);
     rightArm.castShadow = true;
     group.add(rightArm);
 

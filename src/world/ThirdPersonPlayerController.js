@@ -285,11 +285,11 @@ export class ThirdPersonPlayerController {
       // Translate avatar
       avatar.position.addScaledVector(moveDir, speed * delta);
 
-      // Smoothly rotate avatar model towards move direction
+      // Smoothly rotate avatar model towards move direction (safe modulo, no while loop)
       const targetAngle = Math.atan2(moveDir.x, moveDir.z);
-      let diff = targetAngle - avatar.rotation.y;
-      while (diff < -Math.PI) diff += Math.PI * 2;
-      while (diff > Math.PI) diff -= Math.PI * 2;
+      let diff = (targetAngle - avatar.rotation.y) % (Math.PI * 2);
+      if (diff < -Math.PI) diff += Math.PI * 2;
+      if (diff > Math.PI) diff -= Math.PI * 2;
       avatar.rotation.y += diff * Math.min(1.0, delta * this.rotationSpeed);
 
       // Animation: Play Walk
@@ -313,26 +313,15 @@ export class ThirdPersonPlayerController {
   updateCameraPosition(instant = false) {
     if (!this.playerChar || !this.playerChar.model) return;
 
-    const targetPos = this.playerChar.model.position.clone().add(this.targetOffset);
+    const avatar = this.playerChar.model;
+    const targetPos = avatar.position.clone().add(this.targetOffset);
 
-    if (this.state === 'sitting' && this.activeDesk) {
-      // Focus camera onto desk surface
-      this.camera.position.lerp(this.activeDesk.cameraAnchorPosition, instant ? 1.0 : 0.08);
-      this.camera.lookAt(this.activeDesk.cameraAnchorTarget);
-      return;
-    }
+    // Calculate camera position in spherical coordinates relative to avatar
+    const camX = targetPos.x - Math.sin(this.yaw) * Math.cos(this.pitch) * this.cameraDistance;
+    const camY = targetPos.y + Math.sin(this.pitch) * this.cameraDistance + this.cameraHeight * 0.45;
+    const camZ = targetPos.z - Math.cos(this.yaw) * Math.cos(this.pitch) * this.cameraDistance;
 
-    // Calculate spherical camera offset
-    const cosPitch = Math.cos(this.pitch);
-    const offsetX = Math.sin(this.yaw) * this.cameraDistance * cosPitch;
-    const offsetZ = Math.cos(this.yaw) * this.cameraDistance * cosPitch;
-    const offsetY = Math.sin(this.pitch) * this.cameraDistance + this.cameraHeight;
-
-    const desiredCamPos = new THREE.Vector3(
-      targetPos.x + offsetX,
-      targetPos.y + offsetY,
-      targetPos.z + offsetZ
-    );
+    const desiredCamPos = new THREE.Vector3(camX, Math.max(0.65, camY), camZ);
 
     if (instant) {
       this.camera.position.copy(desiredCamPos);
@@ -344,60 +333,50 @@ export class ThirdPersonPlayerController {
   }
 
   /**
-   * Raycast from avatar forward to detect NPCs and desks
+   * High-Performance Targeted Interaction Detection (Throttled, 0ms overhead)
    */
   updateRaycast() {
     if (!this.playerChar || !this.playerChar.model) return;
 
+    const now = performance.now();
+    if (this._lastRaycastTime && now - this._lastRaycastTime < 50) return; // 20 FPS throttle is plenty for prompt detection
+    this._lastRaycastTime = now;
+
     const avatar = this.playerChar.model;
     const forward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), avatar.rotation.y);
-    const startPoint = avatar.position.clone().add(new THREE.Vector3(0, 1.2, 0));
 
-    this.raycaster.set(startPoint, forward);
-    const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-
-    let found = null;
-    for (let i = 0; i < intersects.length; i++) {
-      let obj = intersects[i].object;
-      while (obj && !obj.userData?.isInteractable && obj.parent && obj !== this.scene) {
-        obj = obj.parent;
-      }
-      if (obj && obj.userData?.isInteractable) {
-        // Exclude player avatar itself
-        if (obj !== avatar && !avatar.getObjectById(obj.id)) {
-          found = {
-            object: obj,
-            distance: intersects[i].distance,
-            data: obj.userData
-          };
-          break;
-        }
-      }
+    let targets = [];
+    if (typeof this.options?.getInteractables === 'function') {
+      targets = this.options.getInteractables();
+    } else if (Array.isArray(this.options?.interactables)) {
+      targets = this.options.interactables;
     }
 
-    // Proximity cone fallback if direct center-line ray missed
-    if (!found) {
-      let closestDist = 2.6;
-      this.scene.traverse((obj) => {
-        if (obj.userData?.isInteractable && obj !== avatar && !avatar.getObjectById(obj.id)) {
-          const worldPos = new THREE.Vector3();
-          obj.getWorldPosition(worldPos);
-          const toTarget = new THREE.Vector3(worldPos.x - avatar.position.x, 0, worldPos.z - avatar.position.z);
-          const dist = toTarget.length();
-          if (dist < closestDist) {
-            toTarget.normalize();
-            const dot = forward.dot(toTarget);
-            if (dot > 0.25) {
-              closestDist = dist;
-              found = {
-                object: obj,
-                distance: dist,
-                data: obj.userData
-              };
-            }
+    let found = null;
+    let closestDist = 2.8;
+
+    if (targets && targets.length > 0) {
+      for (let i = 0; i < targets.length; i++) {
+        const obj = targets[i];
+        if (!obj || obj === avatar) continue;
+        const worldPos = new THREE.Vector3();
+        obj.getWorldPosition(worldPos);
+
+        const toTarget = new THREE.Vector3(worldPos.x - avatar.position.x, 0, worldPos.z - avatar.position.z);
+        const dist = toTarget.length();
+        if (dist < closestDist) {
+          toTarget.normalize();
+          const dot = forward.dot(toTarget);
+          if (dot > 0.15) { // Facing general direction of interactable
+            closestDist = dist;
+            found = {
+              object: obj,
+              distance: dist,
+              data: obj.userData || {}
+            };
           }
         }
-      });
+      }
     }
 
     if (found && found.distance <= 2.8) {
