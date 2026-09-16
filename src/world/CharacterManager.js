@@ -141,15 +141,69 @@ export class CharacterManager {
   }
 
   /**
-   * Preload default character assets (Instant procedural humanoids - 0ms overhead)
+   * Preload default character assets (Realistic 3D GLB Models & Skeletal Animations)
    */
   async initDefaultAssets() {
     if (this.loadPromise) return this.loadPromise;
 
-    this.isLoading = false;
-    this.isLoaded = true;
-    console.log('[CharacterManager] High-performance procedural 3D humanoids initialized (60 FPS ready).');
-    this.loadPromise = Promise.resolve(true);
+    this.isLoading = true;
+    this.loadPromise = (async () => {
+      try {
+        console.log('[CharacterManager] Starting background load of realistic 3D character assets (.glb)...');
+
+        // 1. Load Main Male Character Model (.glb prioritized)
+        await this.loadCharacterModel('character', [
+          '/assets/characters/character.glb',
+          './assets/characters/character.glb',
+          '/assets/characters/character.fbx'
+        ]);
+
+        // 2. Load Female Character Model (.glb prioritized)
+        try {
+          await this.loadCharacterModel('character_female', [
+            '/assets/characters/character_female.glb',
+            './assets/characters/character_female.glb',
+            '/assets/characters/character_female.fbx'
+          ]);
+        } catch (e) {
+          console.warn('[CharacterManager] Female character model skipped:', e.message);
+        }
+
+        // 3. Load Skeletal Animations
+        await Promise.allSettled([
+          this.loadAnimation('idle', [
+            '/assets/animations/Breathing Idle.fbx',
+            './assets/animations/Breathing Idle.fbx'
+          ]),
+          this.loadAnimation('walk', [
+            '/assets/animations/Standard Walk.fbx',
+            './assets/animations/Standard Walk.fbx'
+          ]),
+          this.loadAnimation('sit', [
+            '/assets/animations/Sitting Idle.fbx',
+            './assets/animations/Sitting Idle.fbx'
+          ]),
+          this.loadAnimation('type', [
+            '/assets/animations/Typing.fbx',
+            './assets/animations/Typing.fbx'
+          ])
+        ]);
+
+        this.isLoaded = true;
+        this.isLoading = false;
+        console.log('🎉 [CharacterManager] Realistic 3D character assets loaded successfully! Upgrading active scene characters...');
+
+        // Progressive Enhancement: Upgrade all active placeholders in the scene
+        this.upgradeAllPlaceholders();
+
+        return true;
+      } catch (err) {
+        this.isLoading = false;
+        console.error('[CharacterManager] Error loading realistic assets:', err);
+        return false;
+      }
+    })();
+
     return this.loadPromise;
   }
 
@@ -184,6 +238,26 @@ export class CharacterManager {
       instance = SkeletonUtils.clone(baseModel);
       const s = options.scale || this.getOptimalScale(instance);
       instance.scale.set(s, s, s);
+
+      // Role-specific corporate banking attire
+      const role = options.role || 'customer';
+      instance.traverse((child) => {
+        if (child.isMesh && child.material) {
+          child.material = child.material.clone();
+          const n = child.name.toLowerCase();
+          if (n.includes('sweater') || n.includes('shirt')) {
+            if (role === 'vip' || options.isExecutive) {
+              child.material.color.setHex(0x18181b); // Executive Charcoal
+            } else if (role === 'guard') {
+              child.material.color.setHex(0x1e3a8a); // Security Navy
+            } else if (role === 'female') {
+              child.material.color.setHex(0x78350f); // Burgundy
+            } else if (role === 'player') {
+              child.material.color.setHex(0x0369a1); // Corporate Blue
+            }
+          }
+        }
+      });
     } else {
       // Clean immediate procedural humanoid while model loads in background
       instance = this.createFallbackPlaceholder(options);
@@ -258,7 +332,7 @@ export class CharacterManager {
   }
 
   /**
-   * Upgrade an individual placeholder character in-place
+   * Upgrade an individual placeholder character in-place to realistic 3D model
    */
   upgradePlaceholderToRealistic(char) {
     const baseModel = this.baseModels.get(char.modelKey) || this.baseModels.get(this.defaultModelKey);
@@ -289,6 +363,42 @@ export class CharacterManager {
       currentAction.play();
     }
 
+    // Role-specific corporate banking attire
+    const role = char.options.role || char.role || 'teller';
+    instance.traverse((child) => {
+      if (child.isMesh && child.material) {
+        child.material = child.material.clone();
+        const n = child.name.toLowerCase();
+        if (n.includes('sweater') || n.includes('shirt')) {
+          if (role === 'vip' || char.options.isExecutive) {
+            child.material.color.setHex(0x18181b); // Executive Charcoal
+          } else if (role === 'guard') {
+            child.material.color.setHex(0x1e3a8a); // Security Navy
+          } else if (role === 'female') {
+            child.material.color.setHex(0x78350f); // Burgundy
+          } else if (role === 'player') {
+            child.material.color.setHex(0x0369a1); // Corporate Blue
+          }
+        }
+      }
+    });
+
+    // Transfer accessories (e.g. briefcase)
+    if (char.briefcase) {
+      instance.add(char.briefcase);
+    }
+
+    // Preserve and transfer userData for raycast interaction & dialogue
+    const oldUserData = { ...(char.userData || {}), ...(char.model.userData || {}), ...(char.options.userData || {}) };
+    Object.assign(instance.userData, oldUserData);
+    instance.userData.characterRef = char;
+    instance.traverse((child) => {
+      if (child.isMesh) {
+        Object.assign(child.userData, oldUserData);
+        child.userData.characterRef = char;
+      }
+    });
+
     // Replace old placeholder in scene
     if (char.model.parent) {
       char.model.parent.remove(char.model);
@@ -301,7 +411,6 @@ export class CharacterManager {
     char.actions = actions;
     char.currentAction = currentAction;
     char.isPlaceholder = false;
-    instance.userData.characterRef = char;
   }
 
   /**
