@@ -1697,12 +1697,14 @@ export class BankFloorScene {
     // 2. Spawn / Reset 3D Player Avatar
     const isFemale = careerConfig.gender === 'female';
     const playerRole = isFemale ? 'female' : 'player';
+    const startPos = [-4.5, 0, 4.5];
+    const startYaw = 2.3; // Facing diagonally into branch towards center lobby & Farouk office
 
     if (!this.careerPlayerChar) {
       this.careerPlayerChar = this.charManager.spawnCharacter({
         role: playerRole,
-        position: [-5.5, 0, 5.0],
-        rotationY: 2.2, // Facing inside branch towards center
+        position: startPos,
+        rotationY: startYaw,
         defaultAnimation: 'idle'
       });
 
@@ -1737,8 +1739,8 @@ export class BankFloorScene {
       this.careerPlayerChar.model.add(caseGroup);
       this.careerPlayerChar.briefcase = caseGroup;
     } else {
-      this.careerPlayerChar.model.position.set(-5.5, 0, 5.0);
-      this.careerPlayerChar.model.rotation.y = 2.2;
+      this.careerPlayerChar.model.position.set(startPos[0], startPos[1], startPos[2]);
+      this.careerPlayerChar.model.rotation.y = startYaw;
       this.careerPlayerChar.model.visible = true;
       if (this.charManager) {
         this.charManager.playAnimation(this.careerPlayerChar, 'idle', 0.2);
@@ -1754,7 +1756,9 @@ export class BankFloorScene {
       playerChar: this.careerPlayerChar,
       collisionBoxes: this.collisionBoxes,
       audio: this.audio,
-      initialYaw: 0.65,
+      initialYaw: startYaw,
+      cameraDistance: 2.4,
+      cameraHeight: 1.45,
       getInteractables: () => this.getInteractableList()
     });
 

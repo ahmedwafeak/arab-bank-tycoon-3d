@@ -31,13 +31,13 @@ export class ThirdPersonPlayerController {
     this.playerRadius = 0.38;
 
     // Camera follow parameters
-    this.cameraDistance = options.cameraDistance || 2.7;
-    this.cameraHeight = options.cameraHeight || 1.55;
-    this.targetOffset = new THREE.Vector3(0, 1.35, 0); // Point on avatar to look at
-    this.yaw = options.initialYaw || 0; // Horizontal orbit angle
-    this.pitch = 0.18; // Vertical orbit angle (~10 deg down)
-    this.minPitch = -0.15;
-    this.maxPitch = 0.65;
+    this.cameraDistance = options.cameraDistance || 2.4;
+    this.cameraHeight = options.cameraHeight || 1.45;
+    this.targetOffset = new THREE.Vector3(0, 1.30, 0); // Point on avatar to look at
+    this.yaw = options.initialYaw !== undefined ? options.initialYaw : 0; // Horizontal orbit angle
+    this.pitch = options.initialPitch !== undefined ? options.initialPitch : 0.15; // Vertical orbit angle (~8-10 deg down)
+    this.minPitch = -0.20;
+    this.maxPitch = 0.55;
 
     this.isPointerLocked = false;
     this.isDragging = false;
@@ -130,13 +130,13 @@ export class ThirdPersonPlayerController {
         const movementX = e.movementX || 0;
         const movementY = e.movementY || 0;
         this.yaw -= movementX * 0.0032;
-        this.pitch -= movementY * 0.0025;
+        this.pitch += movementY * 0.0025; // Push mouse up -> look up; pull mouse down -> look down
         this.pitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.pitch));
       } else if (this.isDragging) {
         const deltaX = e.clientX - this.previousMousePosition.x;
         const deltaY = e.clientY - this.previousMousePosition.y;
         this.yaw -= deltaX * 0.006;
-        this.pitch -= deltaY * 0.004;
+        this.pitch += deltaY * 0.004;
         this.pitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.pitch));
         this.previousMousePosition = { x: e.clientX, y: e.clientY };
       }
@@ -260,8 +260,8 @@ export class ThirdPersonPlayerController {
     if (this.mobileControls) {
       const mInput = this.mobileControls.getMovement();
       if (mInput.isMoving) {
-        moveX = -mInput.rawX;
-        moveZ = -mInput.rawY;
+        moveX = mInput.rawX;
+        moveZ = -mInput.rawY; // Joystick pushed UP gives negative rawY, so -rawY is positive forward
       }
       if (mInput.sprint) {
         isSprinting = true;
@@ -274,12 +274,14 @@ export class ThirdPersonPlayerController {
       const speed = isSprinting ? this.runSpeed : this.walkSpeed;
 
       // Calculate move direction vector relative to camera yaw
+      // In Three.js: forward along camera look vector
       const forward = new THREE.Vector3(Math.sin(this.yaw), 0, Math.cos(this.yaw)).normalize();
-      const right = new THREE.Vector3(forward.z, 0, -forward.x).normalize();
+      // Screen-right relative to camera look direction
+      const right = new THREE.Vector3(-forward.z, 0, forward.x).normalize();
 
       const moveDir = new THREE.Vector3()
-        .addScaledVector(forward, -moveZ)
-        .addScaledVector(right, -moveX)
+        .addScaledVector(forward, moveZ)
+        .addScaledVector(right, moveX)
         .normalize();
 
       // Translate avatar
@@ -308,7 +310,7 @@ export class ThirdPersonPlayerController {
   }
 
   /**
-   * Position the Third-Person Camera behind the avatar's shoulder
+   * Position the Third-Person Camera behind the avatar's shoulder with wall boundary clamping
    */
   updateCameraPosition(instant = false) {
     if (!this.playerChar || !this.playerChar.model) return;
@@ -317,11 +319,19 @@ export class ThirdPersonPlayerController {
     const targetPos = avatar.position.clone().add(this.targetOffset);
 
     // Calculate camera position in spherical coordinates relative to avatar
-    const camX = targetPos.x - Math.sin(this.yaw) * Math.cos(this.pitch) * this.cameraDistance;
-    const camY = targetPos.y + Math.sin(this.pitch) * this.cameraDistance + this.cameraHeight * 0.45;
-    const camZ = targetPos.z - Math.cos(this.yaw) * Math.cos(this.pitch) * this.cameraDistance;
+    const hDist = Math.cos(this.pitch) * this.cameraDistance;
+    const vDist = Math.sin(this.pitch) * this.cameraDistance;
+    let camX = targetPos.x - Math.sin(this.yaw) * hDist;
+    let camY = targetPos.y + vDist + this.cameraHeight * 0.45;
+    let camZ = targetPos.z - Math.cos(this.yaw) * hDist;
 
-    const desiredCamPos = new THREE.Vector3(camX, Math.max(0.65, camY), camZ);
+    // Room boundary clamping to prevent clipping outside branch walls
+    // Branch dimensions: X [-6.4, 6.4], Z [-6.4, 6.4], Y [0.45, 3.2]
+    camX = Math.max(-6.4, Math.min(6.4, camX));
+    camZ = Math.max(-6.4, Math.min(6.4, camZ));
+    camY = Math.max(0.45, Math.min(3.2, camY));
+
+    const desiredCamPos = new THREE.Vector3(camX, camY, camZ);
 
     if (instant) {
       this.camera.position.copy(desiredCamPos);
